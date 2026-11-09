@@ -11,7 +11,7 @@
       '<div class="big3">' +
       '<div class="bcard"><div class="ic" style="background:var(--purple-s)">📘</div><b>계획서 행사에서 바로 시작</b><p>프로그램 이름 · 운영 부서 · 대상 학년 · 계획 근거가 채워지고, 계획서 내용으로 설계 초안이 들어갑니다.</p></div>' +
       '<div class="bcard"><div class="ic" style="background:var(--green-s)">📊</div><b>운영 결과가 숫자로 남음</b><p>참여 확정 · 출석 확인 · 결과 보고 수치는 서버가 계산합니다. AI가 숫자를 만들지 않습니다.</p></div>' +
-      '<div class="bcard"><div class="ic" style="background:var(--blue-s)">📝</div><b>부서별 2027 원고 초안</b><p>꼭지마다 목표 · 방침 · 추진 계획 · 운영 결과와 환류를 갖춘 원고를 부서가 고쳐 씁니다.</p></div></div>',
+      '<div class="bcard"><div class="ic" style="background:var(--blue-s)">📝</div><b>부서별 2027 원고 초안</b><p>꼭지마다 목표 · 방침 · 추진 계획 · 운영 결과와 피드백를 갖춘 원고를 부서가 고쳐 씁니다.</p></div></div>',
     loop: '<div class="phead">짧은 피드백이 다음 해 계획을 바꿉니다</div>' +
       '<div class="big3">' +
       '<div class="bcard" style="background:var(--green-s);border-color:#bfe3c9"><div class="ic" style="background:#fff">💬</div><b>학생 후기 한 줄 · 선생님 관찰 한 줄</b><p>Google 후기 설문의 운영 개선 의견과 활동 후 정리의 선생님 의견이면 충분합니다.</p></div>' +
