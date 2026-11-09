@@ -240,6 +240,9 @@ a.go.ghost{background:#fff;color:var(--blue);border:2px solid #c9d6fb;box-shadow
 #s12 .hero{width:760px;border-radius:36px;background:radial-gradient(circle at 50% 45%,#fff7d6 0%,#fff 60%);border:3px solid #dbe5fd;box-shadow:0 26px 70px rgba(29,78,216,.14)}
 #s12 .t1{margin-top:44px;font-size:44px;font-weight:800;color:var(--sub);letter-spacing:-.01em}
 #s12 .t2{margin-top:6px;font-size:120px;font-weight:900;letter-spacing:-.035em;line-height:1.1;background:linear-gradient(90deg,#1d4ed8 0%,#4f46e5 45%,#7c3aed 75%,#db2777 100%);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block;padding:0 12px 8px}
+/* 클릭할 때마다 하나씩 나타나는 항목 */
+.slide .step{opacity:0;transform:translateY(34px) scale(.94);transition:opacity .5s ease,transform .6s cubic-bezier(.2,.9,.3,1.25)}
+.slide .step.in{opacity:1;transform:none}
 </style>
 </head>
 <body>
@@ -273,10 +276,10 @@ a.go.ghost{background:#fff;color:var(--blue);border:2px solid #c9d6fb;box-shadow
   <div class="eyebrow rise">학교의 고민</div>
   <h2 class="rise" style="--d:.1">같은 내용을 여러 번 쓰고, 해마다 처음부터 준비합니다</h2>
   <div class="roles">
-    <div class="card role pop" style="--d:.25"><div class="bubble">계획서 · 공문 · 안내문 · 기록,<br>같은 내용을 또 써요</div><img class="mong bob" src="assets/mong/ttukttak.png" alt=""><div class="who2">프로그램 담당</div></div>
-    <div class="card role pop" style="--d:.37"><div class="bubble">이 학생 관심에 맞는<br>프로그램이 어디 있지?</div><img class="mong bob" style="animation-delay:-.8s" src="assets/mong/doran.png" alt=""><div class="who2">담임</div></div>
-    <div class="card role pop" style="--d:.49"><div class="bubble">여러 프로그램 기록을<br>반별로 나누고 학번을 대조해요</div><img class="mong bob" style="animation-delay:-1.4s" src="assets/mong/chorong.png" alt=""><div class="who2">생기부 담당</div></div>
-    <div class="card role school pop" style="--d:.61"><div class="bubble">좋은 프로그램도<br>해마다 처음부터</div><img class="mong bob" style="animation-delay:-2s" src="assets/mong/mongsil.png" alt=""><div class="who2">학교</div></div>
+    <div class="card role step"><div class="bubble">계획서 · 공문 · 안내문 · 기록,<br>같은 내용을 또 써요</div><img class="mong bob" src="assets/mong/ttukttak.png" alt=""><div class="who2">프로그램 담당</div></div>
+    <div class="card role step"><div class="bubble">이 학생 관심에 맞는<br>프로그램이 어디 있지?</div><img class="mong bob" style="animation-delay:-.8s" src="assets/mong/doran.png" alt=""><div class="who2">담임</div></div>
+    <div class="card role step"><div class="bubble">여러 프로그램 기록을<br>반별로 나누고 학번을 대조해요</div><img class="mong bob" style="animation-delay:-1.4s" src="assets/mong/chorong.png" alt=""><div class="who2">생기부 담당</div></div>
+    <div class="card role school step"><div class="bubble">좋은 프로그램도<br>해마다 처음부터</div><img class="mong bob" style="animation-delay:-2s" src="assets/mong/mongsil.png" alt=""><div class="who2">학교</div></div>
   </div>
 </section>
 
@@ -307,7 +310,7 @@ a.go.ghost{background:#fff;color:var(--blue);border:2px solid #c9d6fb;box-shadow
 <section class="slide" id="s5" data-sec="25" data-menu="record">
   <div class="top">
     <div><span class="role-chip pro rise"><img class="mong" src="assets/mong/arong.png" alt="">프로그램 담당 · 활동 후 정리<span class="star">★</span></span>
-      <h2 class="rise" style="--d:.1">근거로 쓴 초안, 확인한 것만 학교 양식으로</h2></div>
+      <h2 class="rise" style="--d:.1">운영 계획과 학생 설문에서 시작해, 확인한 초안만 학교 양식으로</h2></div>
     <div class="demo-btns rise" style="--d:.2"><a class="go" data-pro="#/programs" target="_blank" rel="noopener">▶ 직접 시연 · 프로그램 열기</a></div>
   </div>
   <div class="mwrap"><div class="mlist"></div><div class="mpanel"></div></div>

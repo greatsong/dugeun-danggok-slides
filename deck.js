@@ -150,7 +150,17 @@
     if (!t0 && i > 0) t0 = Date.now();
     if (menuState[target.id]) { select(target.id, 0); restart(target.id); }
   }
-  function go(d) { show(cur + d); }
+  // 장 안의 .step 항목은 넘길 때마다 하나씩 나타난다(앞으로 가면 하나 더, 뒤로 가면 하나 숨김).
+  function steps(i) { return [].slice.call(slides[i].querySelectorAll(".step")); }
+  function go(d) {
+    var st = steps(cur);
+    if (d > 0) { var next = st.filter(function (x) { return !x.classList.contains("in"); })[0]; if (next) { next.classList.add("in"); return; } }
+    if (d < 0) { var shown = st.filter(function (x) { return x.classList.contains("in"); }); if (shown.length) { shown[shown.length - 1].classList.remove("in"); return; } }
+    var to = Math.max(0, Math.min(slides.length - 1, cur + d));
+    if (to === cur) return;
+    steps(to).forEach(function (x) { x.classList.toggle("in", d < 0); });
+    show(to);
+  }
   document.querySelectorAll("#nav [data-go]").forEach(function (el) { el.addEventListener("click", function () { go(+el.dataset.go); }); });
   addEventListener("keydown", function (e) {
     if (lb.classList.contains("show")) { if (e.key === "Escape" || e.key === " " || e.key === "Enter") lb.classList.remove("show"); return; }
