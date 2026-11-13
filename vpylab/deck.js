@@ -35,9 +35,10 @@
       return '<div class="bcard rise t-' + (c.tone || "") + '" style="--d:' + (0.15 + i * 0.1) + '">' + (c.mong ? '<div class="ic">' + mong(c.mong) + '</div>' : '') + '<b>' + c.head + '</b><p>' + c.body + '</p></div>';
     }).join("") + '</div>';
   }
-  function live(id, label) {
-    return '<div class="livebox" data-embed="' + id + '"><div class="wait">' + mong("dugeun", "bob") + '<div>파이썬을 불러오는 중입니다.<br>10초쯤 걸립니다.</div></div><span class="badge">● 실행 중 · ' + esc(label) + '</span></div>';
+  function live(id, label, poster) {
+    return '<div class="livebox" data-embed="' + id + '">' + (poster ? '<img class="poster" src="shots/' + poster + '.jpg" alt="">' : '') + '<div class="wait">' + mong("dugeun", "bob") + '<div>파이썬을 불러오는 중입니다.<br>10초쯤 걸립니다.</div></div><span class="badge">● 실행 중 · ' + esc(label) + '</span></div>';
   }
+  function frame(name, cap, fit) { return '<div class="frame rise ' + (fit || "") + '" style="--d:.2" data-lb="shots/' + name + '.jpg" data-cap="' + esc(cap || "") + '"><img src="shots/' + name + '.jpg" alt="' + esc(cap || "") + '">' + (cap ? '<span class="lbl">' + esc(cap) + '</span>' : '') + '</div>'; }
   function shot(name, cap) { return '<div class="shotbox" data-lb="shots/' + name + '.jpg" data-cap="' + esc(cap || "") + '"><img src="shots/' + name + '.jpg" alt="' + esc(cap || "") + '" loading="lazy"></div>'; }
   var TONES = ["", "", "t-green", "t-orange", "t-pink", "t-purple"];
   function top(s) {
@@ -50,9 +51,9 @@
   var R = {
     cover: function () {
       return '<div class="text"><img class="logo rise" src="vpylab-logo.svg" alt="VPyLab">' +
-        '<h1 class="rise" style="--d:.15">파이썬으로 만드는<br><span class="grad">3D와 소리의 교실</span><span class="l2">VPyLab 소개 · 주요 기능 · 튜토리얼 실습</span></h1>' +
+        '<h1 class="rise" style="--d:.15">빛과 소리로 만드는<br><span class="grad">3D 파이썬 교실</span><span class="l2">왜 만들었고, 무엇이 되고, 어떻게 쓰는가</span></h1>' +
         '<div class="date rise" style="--d:.6">교사 연수 · 당곡고등학교 수리정보교육부 석리송</div></div>' +
-        '<div class="hero"><svg viewBox="0 0 820 840"><path d="M 30 720 C 190 660, 210 490, 370 490 S 590 580, 660 420 S 720 170, 810 120" fill="none" stroke="#3b63e0" stroke-width="7" class="march"/></svg>' +
+        '<div class="heroshot pop" style="--d:.4"><img src="shots/hero-friends.jpg" alt="VPyLab 홈의 코드 친구들"></div><div class="hero" style="display:none"><svg viewBox="0 0 820 840"><path d="M 30 720 C 190 660, 210 490, 370 490 S 590 580, 660 420 S 720 170, 810 120" fill="none" stroke="#3b63e0" stroke-width="7" class="march"/></svg>' +
         '<img class="mong pop" style="--d:.5;left:240px;top:300px;height:340px" src="' + MONG + 'mandu.png" alt="">' +
         '<img class="mong pop" style="--d:.7;left:0;top:590px;height:150px" src="' + MONG + 'chorong.png" alt="">' +
         '<img class="mong pop" style="--d:.85;left:580px;top:450px;height:140px" src="' + MONG + 'ttukttak.png" alt="">' +
@@ -77,12 +78,26 @@
       }).join("") + '</div><div class="below">' + (s.bands || []).map(band).join("") + '</div></div>';
     },
     table: function (s) {
-      return top(s) + '<div class="body"><table class="ba"><tr>' + s.head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join("") + '</tr>' +
-        s.rows.map(function (r) { return '<tr class="' + (r[3] || "") + '"><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>'; }).join("") + '</table>' +
+      return top(s) + '<div class="body"><table class="ba ' + (s.hi ? "cmp" : "") + '"><tr>' + s.head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join("") + '</tr>' +
+        s.rows.map(function (r) { var n = s.head.length; return '<tr class="' + (r[n] || "") + '">' + r.slice(0, n).map(function (c, k) { return '<td' + (k === n - 1 && s.hi ? ' class="hi"' : '') + '>' + c + '</td>'; }).join("") + '</tr>'; }).join("") + '</table>' +
         (s.foot ? '<div class="note-band t-orange" style="margin-top:14px;font-size:24px">' + esc(s.foot) + '</div>' : '') + '</div>';
     },
+    visual: function (s) {
+      var pts = '<div class="pt-list">' + (s.lead ? '<div class="lead2 rise">' + s.lead + '</div>' : '') + (s.list || []).map(function (l, i) {
+        return '<div class="li rise t-' + l[1] + '" style="--d:' + (0.2 + i * 0.1) + '"><i>' + esc(l[0]) + '</i><div>' + l[2] + '</div></div>';
+      }).join("") + (s.code ? codebox(s.code, s.cs) : '') + band(s.band) + '</div>';
+      var vis = s.term ? '<div class="term rise" style="--d:.2"><div class="tb"><span></span><span></span><span></span><em>' + esc(s.termTitle || "Python") + '</em></div><pre>' + esc(s.term) + '</pre></div>'
+        : s.imgs ? '<div class="duo">' + s.imgs.map(function (m) { return frame(m[0], m[1], s.fit); }).join("") + '</div>' : frame(s.img, s.cap, s.fit);
+      if (s.stack) return top(s) + '<div class="body stack">' + vis + '<div class="row4">' + s.list.map(function (l, i) { return '<div class="li rise t-' + l[1] + '" style="--d:' + (0.3 + i * 0.1) + '"><i>' + esc(l[0]) + '</i><div>' + l[2] + '</div></div>'; }).join("") + '</div></div>';
+      return top(s) + '<div class="body"><div class="split ' + (s.ratio || "") + '">' + (s.flip ? vis + pts : pts + vis) + '</div></div>';
+    },
+    mosaic: function (s) {
+      return top(s) + '<div class="body" style="gap:18px"><div class="mosaic ' + (s.light ? "light" : "") + '" style="grid-template-columns:repeat(' + s.cols + ',1fr)">' + s.items.map(function (m, i) {
+        return '<figure class="rise" style="--d:' + (0.15 + i * 0.08) + '" data-lb="shots/' + m[0] + '.jpg" data-cap="' + esc(m[1]) + '"><img src="shots/' + m[0] + '.jpg" alt="' + esc(m[1]) + '"><figcaption><b>' + esc(m[1]) + '</b>' + (m[2] ? '<span>' + esc(m[2]) + '</span>' : '') + '</figcaption></figure>';
+      }).join("") + '</div>' + band(s.band) + '</div>';
+    },
     live: function (s) {
-      return top(s) + '<div class="body"><div class="split">' + live(s.embed, s.label) + '<div class="side">' + codebox(s.code, s.cs, s.label) + tasks(s.tasks) + '</div></div></div>';
+      return top(s) + '<div class="body"><div class="split">' + live(s.embed, s.label, s.poster) + '<div class="side">' + codebox(s.code, s.cs, s.label) + tasks(s.tasks) + '</div></div></div>';
     },
     practice: function (s) {
       var t = { chip: [s.mong, "실습 " + s.no + " / 4"], part: 3, time: s.time, title: s.title, btn: ["이 튜토리얼 열기", s.link] };
@@ -116,7 +131,9 @@
     },
     "break": function (s) { return '<img class="big pop" src="' + MONG + s.mong + '.png" alt=""><div class="t1 rise" style="--d:.2">' + esc(s.title) + '</div><div class="t2 rise" style="--d:.35">' + esc(s.sub) + '</div>'; },
     end: function (s) {
-      return '<img class="big pop" src="' + MONG + 'hero.png" alt="" style="height:440px;border-radius:28px"><div class="t1 rise" style="--d:.2">' + esc(s.title) + '</div><div class="t2 rise" style="--d:.35">' + esc(s.sub) + '</div>';
+      return '<div class="friends" style="margin:0 0 10px">' + ["chorong", "ttukttak", "mandu", "doran", "mongsil", "salang", "gori", "dugeun"].map(function (m, k) { return '<img src="' + MONG + m + '.png" alt="" style="--w:-' + (k * 0.3) + 's">'; }).join("") + '</div>' +
+        '<div class="t1 rise" style="--d:.2">' + esc(s.title) + '</div><div class="t2 rise" style="--d:.35">' + esc(s.sub) + '</div>' +
+        '<div class="endlinks rise" style="--d:.5">' + (s.links || []).map(function (l) { return '<a href="' + url(l[1]) + '" target="_blank" rel="noopener"><b>' + esc(l[0]) + '</b><span>' + esc(l[2]) + '</span></a>'; }).join("") + '</div>';
     }
   };
   var CLS = { cover: "cover", section: "section", "break": "center", end: "center" };
@@ -134,6 +151,7 @@
     }
     stage.appendChild(sec);
   });
+  var PRINT = /[?&]print/.test(location.search); if (PRINT) document.body.classList.add("print");
   var slides = [].slice.call(stage.querySelectorAll(".slide")), cur = 0, settle = null, t0 = 0;
 
   // ---- 메뉴 판 ----
@@ -149,6 +167,7 @@
 
   // ---- 실시간 화면: 보이는 장에서만 iframe을 넣고, 떠나면 뺀다(파이썬이 여러 개 돌지 않게) ----
   function syncLive() {
+    if (PRINT) return;
     slides.forEach(function (sec, i) {
       [].slice.call(sec.querySelectorAll(".livebox")).forEach(function (box) {
         var fr = box.querySelector("iframe");
@@ -167,7 +186,7 @@
   function show(i, lastPane) {
     i = Math.max(0, Math.min(N - 1, i));
     slides.forEach(function (s, k) { s.classList.toggle("active", k === i); s.classList.remove("settled"); });
-    clearTimeout(settle); var target = slides[i]; settle = setTimeout(function () { target.classList.add("settled"); }, 1700);
+    clearTimeout(settle); var target = slides[i]; settle = setTimeout(function () { target.classList.add("settled"); }, PRINT ? 0 : 1700);
     cur = i; count.textContent = (i + 1) + " / " + N; bar.style.width = ((i + 1) / N * 100) + "%";
     var s = D.slides[i];
     notes.innerHTML = "<h4>" + (i + 1) + "장" + (s.part ? " · " + esc(D.parts[s.part]) : "") + "</h4>" + esc(s.note || "");
