@@ -50,7 +50,7 @@
   function gsBox(id) {
     var g = GS[id] || {};
     return '<div class="livebox gs" data-src="' + esc(g.url || "") + '" data-click="1"><div class="gscard"><img src="shots/' + id + '.jpg" alt=""><div><small>GlowScript 원본</small><b>' + esc(g.title || "") + '</b>' +
-      '<button class="gsrun" data-act="load">▶ 여기서 원본 실행</button><a href="' + esc(g.url || "#") + '" target="_blank" rel="noopener">새 탭에서 열기 ↗</a></div></div>' +
+      '<button class="gsrun" data-act="load">▶ 이 자리에서 원본 실행</button><a href="' + esc(g.url || "#") + '" target="_blank" rel="noopener">새 탭에서 열기 ↗</a></div></div>' +
       '<div class="tools"><button data-act="reload">↻ 다시</button><button data-act="full">⛶ 크게</button></div></div>';
   }
 
@@ -105,10 +105,10 @@
       }).join("") + (s.legend ? '<div class="legend">' + s.legend + '</div>' : '') + '</div><div class="mpanel">' + s.items.map(function (it) {
         var open = it.open ? '<a class="go ghost" href="' + url(it.open) + '" target="_blank" rel="noopener">VPyLab에서 열어 고치기 ↗</a>' : '';
         var inner;
-        if (it.code) inner = '<div class="split even prac"><div class="side">' + codebox(it.code, it.cs || 24, it.ext ? "VPyLab에서 열리는 코드" : "오른쪽에서 돌고 있는 코드") + tasks(it.tasks) + '</div>' + demoBox(it.demo, it) + '</div>';
+        if (it.code) inner = '<div class="split even prac"><div class="side">' + codebox(it.code, it.cs || 24, it.ext ? "이 예제의 코드" : "오른쪽에서 실행 중인 코드") + tasks(it.tasks) + '</div>' + demoBox(it.demo, it) + '</div>';
         else if (it.gs) inner = gsBox(it.gs) + chips(it.chips);
         else inner = demoBox(it.demo, it) + chips(it.chips);
-        return '<div class="pane"><div class="phead"><span>' + esc(it.head) + '</span>' + (it.sound ? '<span class="tag snd">소리 남</span>' : '') + (it.ext ? '<span class="tag">눌러서 하는 예제</span>' : '') + open + '</div>' + inner + '</div>';
+        return '<div class="pane"><div class="phead"><span>' + esc(it.head) + '</span>' + (it.sound ? '<span class="tag snd">소리 남</span>' : '') + (it.ext ? '<span class="tag">직접 눌러 보는 예제</span>' : '') + open + '</div>' + inner + '</div>';
       }).join("") + '</div></div></div>';
     },
     end: function (s) {
