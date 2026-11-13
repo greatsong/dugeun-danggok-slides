@@ -15,16 +15,16 @@
     note: "인사 전에 오른쪽 화면을 눌러 음악을 틀어 둔다. 이것도 파이썬 100줄 남짓." },
 
   // ───────── 왜 만들었나 ─────────
-  { type: "visual", part: 1, chip: ["doran", "교실에서 자주 듣는 말"], title: "파이썬 시간인데 수학 시간 같다고 합니다",
+  { type: "visual", part: 1, chip: ["doran", "출발점"], title: "글자와 숫자만 다루다 보니 수학 수업 같아집니다",
     ratio: "half", flip: true,
-    termTitle: "첫 시간 화면",
+    termTitle: "흔히 보는 파이썬 수업 화면",
     term: ">>> a = 3\n>>> b = 4\n>>> print(a + b)\n7\n>>> for i in range(1, 6):\n...     print(i, i * i)\n...\n1 1\n2 4\n3 9\n4 16\n5 25",
     quotes: [
-      ["chorong", "선생님, 이거 수학이에요?", ""],
-      ["mongsil", "숫자밖에 못 바꿔요?", ""],
-      ["ttukttak", "이거 배워서 뭐 만들어요?", ""]
+      ["chorong", "결과가 글자와 숫자로만 나옵니다.", ""],
+      ["mongsil", "학생이 바꿔 볼 수 있는 것도 숫자뿐입니다.", ""],
+      ["ttukttak", "코딩을 한다기보다 계산 문제를 푸는 느낌이 듭니다.", ""]
     ],
-    note: "화면에 나오는 게 글자랑 숫자뿐이니 학생이 건드릴 것도 숫자뿐. 선생님들도 비슷한 말 들어 보셨는지 한두 분께 물어보기." },
+    note: "텍스트로만 하는 파이썬 수업의 한계. 학생들한테 '이거 수학이에요?' 소리 들어 본 적 있는지 선생님들께 물어보며 시작." },
 
   { type: "menu", part: 1, chip: ["sallang", "GlowScript 원본"], title: "VPython 수업에서 학생들이 만든 작품",
     toc: "VPython 시절 학생 작품 (GlowScript 원본)",
@@ -118,7 +118,7 @@
       { label: "바운스 볼", sub: "부딪히면 소리", mong: "arong", head: "바운스 볼", demo: "bounce-ball", sound: true, open: ex("bounce-ball"),
         chips: [["blue", "볼 것", "벽에 닿으면 색이 바뀌고 소리가 남"], ["green", "코드", "벽에서 튕기는 건 <code>if</code> 한 줄"]] },
       { label: "파동", sub: "출렁이는 격자", mong: "sallang", head: "파동 시뮬레이션", demo: "wave-sim", open: ex("wave-sim"),
-        chips: [["green", "수학", "거리와 시간을 넣은 사인 함수"], ["orange", "바꿔 볼 값", "파장, 속도"]] },
+        chips: [["green", "수학", "거리와 시간에 따라 높이가 바뀌는 사인 함수"], ["orange", "바꿔 볼 값", "파장, 속도"]] },
       { label: "행성 충돌", sub: "서로 끌려와 쾅", mong: "chorong", head: "행성 충돌", demo: "planet-collision", sound: true, open: ex("planet-collision"),
         chips: [["blue", "볼 것", "서로 끌어당기며 가까워지다 부딪힘"], ["orange", "바꿔 볼 값", "질량, 처음 거리"]] },
       { label: "도플러 효과", sub: "지나가는 자동차", mong: "doran", head: "도플러 효과", demo: "music-doppler", sound: true, open: ex("music-doppler"),
