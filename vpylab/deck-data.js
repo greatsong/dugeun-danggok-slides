@@ -10,25 +10,25 @@
   { type: "cover", toc: "표지",
     title: '빛과 소리로 코딩하는<br><span class="grad">3D 파이썬, VPyLab</span>',
     by: "교사 연수 · 당곡고등학교 수리정보교육부 석리송",
-    hint: "오른쪽 화면을 한 번 눌러 보세요. 음악이 나옵니다.",
+    hint: "오른쪽 화면을 한 번 눌러 보세요. 음악이 나와요.",
     demo: "lightshow-galaxy-disco",
     note: "인사 전에 오른쪽 화면을 눌러 음악을 틀어 둔다. 이것도 파이썬 100줄 남짓." },
 
   // ───────── 왜 만들었나 ─────────
-  { type: "visual", part: 1, chip: ["doran", "출발점"], title: "글자와 숫자만 다루다 보니 수학 수업 같아집니다",
+  { type: "visual", part: 1, chip: ["doran", "출발점"], title: "글자와 숫자만 다루는 파이썬 수업, 수학 수업 같다",
     ratio: "half", flip: true,
     termTitle: "흔히 보는 파이썬 수업 화면",
     term: ">>> a = 3\n>>> b = 4\n>>> print(a + b)\n7\n>>> for i in range(1, 6):\n...     print(i, i * i)\n...\n1 1\n2 4\n3 9\n4 16\n5 25",
     quotes: [
-      ["chorong", "결과가 글자와 숫자로만 나옵니다.", ""],
-      ["mongsil", "학생이 바꿔 볼 수 있는 것도 숫자뿐입니다.", ""],
-      ["ttukttak", "코딩을 한다기보다 계산 문제를 푸는 느낌이 듭니다.", ""]
+      ["chorong", "결과는 글자와 숫자뿐", ""],
+      ["mongsil", "학생이 바꿔 볼 수 있는 것도 숫자뿐", ""],
+      ["ttukttak", "코딩보다는 계산 문제 풀이에 가까움", ""]
     ],
     note: "텍스트로만 하는 파이썬 수업의 한계. 학생들한테 '이거 수학이에요?' 소리 들어 본 적 있는지 선생님들께 물어보며 시작." },
 
   { type: "menu", part: 1, chip: ["sallang", "GlowScript 원본"], title: "VPython 수업에서 학생들이 만든 작품",
     toc: "VPython 시절 학생 작품 (GlowScript 원본)",
-    legend: "GlowScript(웹 VPython)로 만든 학생 작품입니다. 버튼을 누르면 glowscript.org 원본이 이 자리에서 열립니다.",
+    legend: "GlowScript(웹 VPython)로 만든 학생 작품. 버튼을 누르면 glowscript.org 원본이 이 자리에서 열림",
     items: [
       { label: "바운스볼 게임", sub: "2021 서울고", mong: "gori", head: "바운스볼 게임", gs: "gs2021-02", chips: [["green", "학생 작품", "게임 규칙과 충돌 조건을 학생이 직접 짬"]] },
       { label: "화살 게임", sub: "2021 서울고", mong: "sallang", head: "화살 게임", gs: "gs2021-03", chips: [["green", "학생 작품", "화살이 과녁에 맞았는지 코드로 판정"]] },
@@ -71,9 +71,9 @@
     note: "수업하면서 느낀 차이를 줄여 쓴 표. 세세하게 따지면 다를 수 있음." },
 
   // ───────── 무엇이 되나 ─────────
-  { type: "menu", part: 2, chip: ["chorong", "빛과 소리로 코딩"], title: "빛과 소리를 코드로 만듭니다",
+  { type: "menu", part: 2, chip: ["chorong", "빛과 소리로 코딩"], title: "빛과 소리를 코드로",
     toc: "빛과 소리로 코딩 (실행 5개)",
-    legend: "화면을 한 번 누르면 시작합니다. 소리가 나니 스피커를 켜 두세요. ↑↓로 예제를 바꿉니다.",
+    legend: "화면을 한 번 누르면 시작. 소리가 나니 스피커를 켜 두세요. ↑↓로 예제 바꾸기",
     items: [
       { label: "갤럭시 디스코", sub: "박자에 맞춰 도는 행성", mong: "chorong", head: "갤럭시 디스코", demo: "lightshow-galaxy-disco", sound: true, open: ex("lightshow-galaxy-disco"),
         chips: [["blue", "빛", "<code>emissive=True</code>로 빛나고 <code>local_light</code>로 비춤"], ["purple", "소리", "박자마다 음과 조명이 같이 바뀜"]] },
@@ -88,9 +88,9 @@
     ],
     note: "하나 골라 30초쯤 틀어 두기. '여기 숫자 하나 바꾸면 박자가 달라져요' 정도만 말하고 넘어감. 고쳐 보고 싶으면 오른쪽 위 버튼으로 VPyLab에서 열기." },
 
-  { type: "menu", part: 2, chip: ["doran", "음악"], title: "음악 시간에도 쓸 수 있습니다",
+  { type: "menu", part: 2, chip: ["doran", "음악"], title: "음악 수업과도 연결",
     toc: "음악과 연결 (6개)",
-    legend: "멜로디는 리스트로, 박자는 반복문으로 만듭니다. 음악 예제가 13개 있습니다.",
+    legend: "멜로디는 리스트로, 박자는 반복문으로. 음악 예제 13개",
     items: [
       { label: "주파수 탑", sub: "음높이와 Hz", mong: "ttukttak", head: "주파수 탑", demo: "music-frequency-tower", sound: true, open: ex("music-frequency-tower"),
         chips: [["blue", "볼 것", "높은 음일수록 탑이 높음"], ["green", "과학", "도 262Hz, 한 옥타브 위 도 523Hz"]] },
@@ -107,9 +107,9 @@
     ],
     note: "무지개 피아노는 연수 오신 분 한 명 나와서 쳐 보게 하기. 음악 선생님과 같이 수업 짜기 좋은 대목." },
 
-  { type: "menu", part: 2, chip: ["ttukttak", "물리 시뮬레이션"], title: "물리 시뮬레이션은 VPython이 원래 잘하던 일입니다",
+  { type: "menu", part: 2, chip: ["ttukttak", "물리 시뮬레이션"], title: "물리 시뮬레이션, VPython이 원래 잘하던 일",
     toc: "물리 시뮬레이션 (실행 6개)",
-    legend: "<code>속도 += 가속도 * dt</code><br><code>위치 += 속도 * dt</code><br>대부분 이 두 줄로 움직입니다.",
+    legend: "<code>속도 += 가속도 * dt</code><br><code>위치 += 속도 * dt</code><br>대부분 이 두 줄로 움직임",
     items: [
       { label: "진자 운동", sub: "줄에 매달린 공", mong: "ttukttak", head: "진자 운동", demo: "pendulum", open: ex("pendulum"),
         chips: [["orange", "바꿔 볼 값", "줄 길이, 처음 각도"], ["blue", "물어보기", "줄이 길어지면 주기는?"]] },
@@ -126,14 +126,14 @@
     ],
     note: "VPython이 원래 잘하던 일이고 그대로 됨. 바운스 볼, 도플러는 물리에 소리가 붙은 예. 과학 선생님께 어느 단원에 쓸지 물어보기." },
 
-  { type: "mosaic", part: 2, chip: ["dugeun", "캐릭터"], title: "첫 화면에 캐릭터가 나옵니다",
+  { type: "mosaic", part: 2, chip: ["dugeun", "캐릭터"], title: "첫 화면부터 캐릭터",
     cols: 3, light: true,
     btn: ["▶ 홈에서 움직여 보기", "/"],
     items: [["hero-mandu", "만두", "만두 빚기"], ["hero-toolbox", "공구상자", "뚜껑 달그락"], ["hero-friends", "프렌즈", "넷이 따로 통통"]],
-    band: ["pink", "전부 구, 타원체, 상자 같은 기본 도형으로 만들었습니다. '이 친구, 내 코드로 만들기'를 누르면 그 코드가 열립니다."],
+    band: ["pink", "전부 구, 타원체, 상자 같은 기본 도형으로 만든 것. '이 친구, 내 코드로 만들기'를 누르면 그 코드가 열림"],
     note: "홈 열어서 친구 바꿔 가며 움직임 틀어 주기. 이것도 다 코드라는 것만 짚으면 됨." },
 
-  { type: "visual", part: 2, chip: ["gori", "대장간"], title: "대장간에서 슬라이더로 캐릭터를 만듭니다",
+  { type: "visual", part: 2, chip: ["gori", "대장간"], title: "대장간: 슬라이더로 캐릭터 만들기",
     stack: true, img: "forge", cap: "대장간 작업대",
     btn: ["▶ 대장간 열기", "/forge"],
     list: [
@@ -144,25 +144,25 @@
     ],
     note: "슬라이더 밀면 오른쪽 아래 body_width = 1.72 같은 코드가 같이 바뀜. 실제로 열어서 한 번 밀어 보기." },
 
-  { type: "flow", part: 2, chip: ["mongsil", "저장"], title: "서버 DB를 없앴습니다. 코드는 학생이 갖고 있습니다",
+  { type: "flow", part: 2, chip: ["mongsil", "저장"], title: "서버 DB는 없앴고, 코드는 학생이 가짐",
     steps: [
       ["chorong", "혼자 만들기", "로그인 없이 바로 시작. 쓰던 코드는 브라우저에 14일 동안 남고, 링크나 HTML 파일로 보관", "먼저"],
       ["arong", "구글 드라이브", "다른 컴퓨터에서 이어 하려면 저장을 누름. 내 드라이브의 VPyLab 폴더에 저장됨", "저장이 필요하면"],
       ["gori", "GitHub 팀 프로젝트", "프로젝트 하나가 저장소 하나. 팀원은 초대 코드로 들어오고, 저장하면 커밋이 남음", "같이 만들 때"]
     ],
     bands: [
-      ["blue", "학생 코드를 서버에 모아 두지 않습니다. 구글 드라이브에서도 VPyLab은 자신이 만든 파일만 열 수 있습니다."],
-      ["green", "셋을 한꺼번에 할 필요 없습니다. 첫 시간엔 로그인 없이 만들기만 해도 충분합니다."]
+      ["blue", "학생 코드를 서버에 모아 두지 않음. 구글 드라이브에서도 VPyLab은 자기가 만든 파일만 열 수 있음"],
+      ["green", "셋을 한꺼번에 할 필요는 없음. 첫 시간엔 로그인 없이 만들기만 해도 충분"]
     ],
     note: "예전엔 서버 DB(Supabase)에 저장했는데 지금은 없앰. 학교에서 걱정하는 개인정보 문제가 많이 줄어듦. GitHub 계정은 만 13세 이상이라 원하는 팀만." },
 
-  { type: "cards", part: 2, chip: ["gori", "팀 프로젝트"], title: "팀 과제에서 누가 뭘 했는지 남습니다",
+  { type: "cards", part: 2, chip: ["gori", "팀 프로젝트"], title: "팀 과제, 누가 뭘 했는지 남는다",
     cols: 4,
     cards: [
       { mong: "gori", tone: "purple", head: "저장하면 커밋", body: "누가, 언제, 무엇을 바꿨는지 GitHub에 남음" },
       { mong: "arong", tone: "blue", head: "기록 남기기", body: "한 일, 막힌 점, 다음에 할 일을 학생이 직접 적음" },
       { mong: "doran", tone: "green", head: "예전 버전 열기", body: "저장 이력에서 지난 코드를 불러와 다시 돌려 봄" },
-      { mong: "chorong", tone: "orange", head: "AI가 읽는 기록", body: "저장소에 쌓인 커밋과 기록을 AI가 읽어 와 과정을 돌아보는 데 씀" }
+      { mong: "chorong", tone: "orange", head: "AI가 읽는 기록", body: "쌓인 커밋과 기록을 AI가 읽어 와 과정을 돌아볼 때 씀" }
     ],
     band: ["blue", "학생 기록 예: “공이 바닥을 뚫고 내려가서, 중심 좌표만 보지 않고 반지름까지 더해 충돌을 판단했다. 다음엔 공이 빠를 때도 되는지 확인할 것.”"],
     note: "결과물만 봐서는 누가 했는지 모름. 커밋이랑 기록이 있으니 과정을 놓고 얘기할 수 있음. AI는 정리만 도와줌. 평가는 교사가." },
@@ -174,23 +174,23 @@
       { mong: "doran", tone: "purple", head: "단어 뜻이 옆에 뜸", body: "<code>radius</code>를 치면 그림과 뜻이 잠깐 나옴. 같은 단어는 두 번까지만" },
       { mong: "ttukttak", tone: "green", head: "자동 완성", body: "<code>sp</code>까지 치면 <code>sphere</code>를 제안. AI를 쓰지 않아 학생 코드가 밖으로 나가지 않음" }
     ],
-    band: ["orange", "영어 화면도 있습니다. 더 보기 → 언어 → English."],
+    band: ["orange", "영어 화면도 있음: 더 보기 → 언어 → English"],
     note: "소리 명령이랑 한글 이름은 VPyLab에만 있음. 다른 VPython으로 옮길 땐 문서의 'VPyLab 확장' 표시 확인." },
 
   // ───────── 직접 해 보기 ─────────
   { type: "url", part: 3, chip: ["chorong", "같이 해 보기"], title: "이제 직접 해 봅시다",
-    url: "vpylab.vercel.app", sub: "크롬이나 엣지에서 여세요. 설치도 로그인도 필요 없습니다.",
+    url: "vpylab.vercel.app", sub: "크롬이나 엣지에서. 설치도 로그인도 필요 없음",
     cards: [
-      { mong: "ttukttak", head: "처음 실행은 10초쯤", body: "파이썬 엔진을 받아 오는 시간입니다. '준비됨'이 뜨면 실행을 누르세요." },
+      { mong: "ttukttak", head: "처음 실행은 10초쯤", body: "파이썬 엔진을 받아 오는 시간. '준비됨'이 뜨면 실행" },
       { mong: "arong", head: "소리가 안 나면", body: "<b>도구 → 소리 켜기</b>를 누르고 기기 음량을 확인하세요." },
-      { mong: "doran", head: "튜토리얼부터", body: "위 메뉴 <b>튜토리얼</b>에서 '체험하기'를 누르면 코드가 든 화면이 열립니다." }
+      { mong: "doran", head: "튜토리얼부터", body: "위 메뉴 <b>튜토리얼</b>에서 '체험하기'를 누르면 코드가 든 화면이 열림" }
     ],
     btn: ["▶ 튜토리얼 열기", "/tutorials"],
     note: "다 들어오셨는지 확인. 와이파이가 느리면 실행 버튼을 미리 눌러 두게." },
 
   { type: "menu", part: 3, chip: ["dugeun", "튜토리얼"], title: "하나만 바꿔 보고, 왜 그런지 말해 보기",
     toc: "튜토리얼 실습 (5개)",
-    legend: "하나에 8분쯤 걸립니다. 오른쪽은 지금 실행 중인 결과입니다. 코드는 'VPyLab에서 열어 고치기'를 눌러 각자 화면에서 고칩니다.",
+    legend: "하나에 8분쯤. 오른쪽은 지금 실행 중인 결과. 코드는 'VPyLab에서 열어 고치기'를 눌러 각자 화면에서 고치기",
     items: [
       { label: "3D를 바로 만들기", sub: "공 하나", mong: "dugeun", head: "3D를 바로 만들기", demo: "shape", open: "/tutorials/shape",
         code: "from vpython import *\nsphere(radius=0.5, color=색상['하늘'])", cs: 26,
@@ -231,20 +231,20 @@
       ["5~6", "팀 프로젝트", "만들기와 GitHub. 커밋과 작업 기록"],
       ["7", "발표", "공유 링크와 QR. 친구 코드를 읽고 한 가지 제안"]
     ],
-    foot: "코딩이 처음인 반은 2~3차시 대신 트레이닝 '처음 만드는 빛과 소리'(8차시)로 해도 됩니다.",
+    foot: "코딩이 처음인 반은 2~3차시 대신 트레이닝 '처음 만드는 빛과 소리'(8차시)로 해도 됨",
     note: "제가 짜 본 예시. 옆 선생님과 '우리 학교면 어느 과목에서 몇 차시?' 2분 얘기하기." },
 
-  { type: "cards", part: 4, chip: ["sallang", "오픈소스"], title: "누구나 쓰도록 공개했습니다",
+  { type: "cards", part: 4, chip: ["sallang", "오픈소스"], title: "누구나 쓰도록 공개",
     cols: 3,
     cards: [
       { mong: "sallang", tone: "green", head: "소스 공개", body: "AGPL v3. 가져다 쓰고, 고치고, 고친 걸 다시 나눌 수 있음" },
       { mong: "doran", tone: "blue", head: "한국어와 영어", body: "메뉴, 안내, 기초 교재가 영어로도 있어 외국 교실에서도 쓸 수 있음" },
       { mong: "mongsil", tone: "purple", head: "같이 고쳐 가기", body: "써 보시고 불편한 점이나 넣고 싶은 예제를 알려 주시면 다음 판에 반영" }
     ],
-    band: ["green", "우리 학교 수업에 쓰려고 만들었지만, 다른 학교와 다른 나라의 컴퓨팅 사고력 수업에도 쓰였으면 합니다."],
+    band: ["green", "우리 학교 수업에 쓰려고 만들었지만, 다른 학교와 다른 나라의 컴퓨팅 사고력 수업에도 쓰였으면 하는 바람"],
     note: "오늘 나온 의견도 그대로 반영. 소스는 github.com/greatsong/vpylab-classroom." },
 
-  { type: "end", toc: "마무리", title: "질문 받겠습니다", sub: "오늘 본 예제는 모두 이 페이지에서 다시 실행해 볼 수 있습니다.",
+  { type: "end", toc: "마무리", title: "질문 받아요", sub: "오늘 본 예제는 모두 이 페이지에서 다시 실행해 볼 수 있어요",
     links: [["VPyLab", "/", "vpylab.vercel.app"], ["사용 안내", "/guide", "/guide"], ["교사용 교재", "https://greatsong.github.io/vpylab-textbook/", "greatsong.github.io/vpylab-textbook"], ["소스 코드", "https://github.com/greatsong/vpylab-classroom", "github.com/greatsong/vpylab-classroom"]],
     note: "이 슬라이드 주소를 연수 자료로 나눠 드림." }
   ] };
