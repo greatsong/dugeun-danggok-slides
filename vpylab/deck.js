@@ -51,7 +51,7 @@
   var R = {
     cover: function () {
       return '<div class="text"><img class="logo rise" src="vpylab-logo.svg" alt="VPyLab">' +
-        '<h1 class="rise" style="--d:.15">빛과 소리로 만드는<br><span class="grad">3D 파이썬 교실</span><span class="l2">왜 만들었고, 무엇이 되고, 어떻게 쓰는가</span></h1>' +
+        '<h1 class="rise" style="--d:.15">빛과 소리로 만드는<br><span class="grad">3D 파이썬 교실</span><span class="l2">빛과 소리로 코딩 · 음악 · 물리 시뮬레이션 · 캐릭터</span></h1>' +
         '<div class="date rise" style="--d:.6">교사 연수 · 당곡고등학교 수리정보교육부 석리송</div></div>' +
         '<div class="heroshot pop" style="--d:.4"><img src="shots/hero-friends.jpg" alt="VPyLab 홈의 코드 친구들"></div><div class="hero" style="display:none"><svg viewBox="0 0 820 840"><path d="M 30 720 C 190 660, 210 490, 370 490 S 590 580, 660 420 S 720 170, 810 120" fill="none" stroke="#3b63e0" stroke-width="7" class="march"/></svg>' +
         '<img class="mong pop" style="--d:.5;left:240px;top:300px;height:340px" src="' + MONG + 'mandu.png" alt="">' +
