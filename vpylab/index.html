@@ -224,6 +224,52 @@ body.print .slide{transition:none}
 .ba td{padding:24px 22px}
 .ba.cmp td{font-size:27px;padding:19px 22px}
 .duo .frame{align-items:center}
+/* 실행 상자 */
+.livebox{flex:1;background:#0d1117}
+.livebox .tools{position:absolute;right:12px;top:12px;z-index:3;display:flex;gap:8px;opacity:.0;transition:opacity .2s}
+.livebox:hover .tools,.livebox.running .tools{opacity:.85}
+.livebox .tools button{font:inherit;font-size:16px;font-weight:800;color:#e5e7eb;background:rgba(17,24,39,.72);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:5px 12px;cursor:pointer}
+.livebox .tools button:hover{background:var(--blue);border-color:var(--blue)}
+.livebox:fullscreen{border-radius:0}
+.livebox.running .poster{display:none}
+.livebox.gs{background:#fff}
+.gscard{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:44px;padding:40px}
+.gscard img{width:520px;border-radius:14px;border:1px solid var(--line);image-rendering:auto;box-shadow:0 14px 40px rgba(30,50,110,.18)}
+.gscard small{display:block;font-size:20px;font-weight:850;color:var(--green)}
+.gscard b{display:block;font-size:46px;font-weight:850;line-height:1.25;margin:6px 0 22px;max-width:520px}
+.gscard .gsrun{display:block;font:inherit;font-size:26px;font-weight:850;color:#fff;background:var(--blue);border:0;border-radius:16px;padding:14px 26px;cursor:pointer;box-shadow:0 10px 24px rgba(29,78,216,.25)}
+.gscard a{display:inline-block;margin-top:14px;font-size:20px;font-weight:750;color:var(--blue)}
+.livebox.gs.running .gscard{display:none}
+.phead .tag.snd{background:var(--purple-s);color:var(--purple)}
+.phead .tag{background:var(--orange-s);color:var(--orange)}
+.who span code,.legend code{font-family:"JetBrains Mono","Pretendard",monospace;font-size:.88em;background:#eef2f8;border-radius:8px;padding:1px 7px;color:#1e3a8a}
+.legend code{background:rgba(255,255,255,.7);color:#7c2d12}
+.split.prac{flex:1;min-height:0;grid-template-columns:.9fr 1.1fr}
+.split.prac .task p{font-size:25px}.split.prac .task{padding:14px 20px}
+.quote{display:flex;align-items:center;gap:22px;background:#fff;border:1px solid var(--line);border-radius:26px 26px 26px 8px;padding:22px 28px}
+.quote img{height:110px;flex:none}
+.quote p{font-size:38px;font-weight:850;line-height:1.35}
+.quote small{font-size:21px;font-weight:700;color:var(--mute)}
+.pt-list{gap:18px}
+.cover .coverlive{position:absolute;right:88px;top:120px;width:900px;height:800px;border-radius:32px;overflow:hidden;box-shadow:0 30px 80px rgba(30,50,110,.28);display:flex}
+.cover .coverlive .livebox{border-radius:32px;border:0}
+.cover .text{max-width:820px}
+.cover h1{font-size:76px}
+.cover .hint{display:flex;align-items:center;gap:16px;margin-top:70px;font-size:26px;font-weight:700;color:var(--sub);line-height:1.5;max-width:700px}
+.cover .hint img{height:90px}
+.flow .st .n{background:var(--blue-s);border-radius:999px;padding:4px 14px}
+.flow .st p b{color:var(--ink)}
+.livebox.ext .poster{filter:saturate(.9) brightness(.82)}
+.extgo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-decoration:none;background:#fff;border-radius:22px;padding:22px 34px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.extgo b{display:block;font-size:30px;font-weight:850;color:var(--blue)}
+.extgo span{display:block;font-size:21px;font-weight:700;color:var(--sub);margin-top:6px}
+.gscard img{width:384px}
+.cards .bcard{padding:40px 36px;gap:20px}
+.cards .bcard b{font-size:40px}
+.cards .bcard p{font-size:30px;line-height:1.55}
+.cards .bcard .ic,.cards .bcard .ic img{height:170px}
+.cards[style*="repeat(4"] .bcard b{font-size:36px}
+.cards[style*="repeat(4"] .bcard p{font-size:27px}
 /* 표 */
 .ba{width:100%;border-collapse:separate;border-spacing:0 10px}
 .ba th{font-size:22px;color:var(--mute);font-weight:800;text-align:left;padding:0 22px}
@@ -290,9 +336,10 @@ body.print .slide{transition:none}
 <div id="meta"><span id="timer" title="T: 타이머 다시 시작">0:00</span><button id="tocBtn" title="G: 목차">목차</button><button data-go="-1" title="이전">‹</button><span id="count">1 / 1</span><button data-go="1" title="다음">›</button></div>
 <div id="help">← → 넘기기 · ↑ ↓ 메뉴 · G 목차 · F 전체 화면 · N 진행 메모 · T 타이머</div>
 <div id="notes"></div>
-<div id="toc"><h3>목차 — 눌러서 이동</h3><ol></ol></div>
+<div id="toc"><h3>목차 (누르면 그 장으로)</h3><ol></ol></div>
 <div id="lightbox"><div><img alt=""><p></p></div></div>
 
+<script src="gs-data.js"></script>
 <script src="deck-data.js"></script>
 <script src="deck.js"></script>
 </body>

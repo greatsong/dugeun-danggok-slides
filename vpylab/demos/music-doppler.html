@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com blob:; style-src 'unsafe-inline'; connect-src https://cdn.jsdelivr.net https://unpkg.com https://pypi.org https://files.pythonhosted.org blob:; img-src blob: data:; font-src https://cdn.jsdelivr.net; worker-src blob:;">
+  <title>도플러 효과: 음원이 다가오면 파장이 짧아져 음이 높아지고, — VPyLab</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
+    #viewport { width: 100vw; height: 100vh; }
+    #info { position: fixed; top: 12px; left: 12px; font-size: 12px; opacity: 0.5; z-index: 10; }
+    #info a { color: #58a6ff; text-decoration: none; }
+    #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #0d1117; z-index: 100; flex-direction: column; gap: 12px; }
+    #loading .bar { width: 200px; height: 4px; background: #30363d; border-radius: 9999px; overflow: hidden; }
+    #loading .fill { height: 100%; background: linear-gradient(90deg, #6C5CE7, #00CEC9); transition: width 0.3s; }
+    #loading.done { opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+    #console { position: fixed; bottom: 0; left: 0; right: 0; max-height: 150px; overflow-y: auto; background: rgba(13,17,23,0.9); padding: 8px 12px; font-family: monospace; font-size: 12px; color: #8b949e; z-index: 10; display: none; }
+    #console.visible { display: block; }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div style="font-size:14px">Python 엔진 로딩 중...</div>
+    <div class="bar"><div class="fill" id="progress" style="width:0%"></div></div>
+  </div>
+  <div id="info">도플러 효과: 음원이 다가오면 파장이 짧아져 음이 높아지고, · <a href="https://github.com/vpylab/vpylab" target="_blank">GitHub</a> · <a href="https://vpylab.vercel.app/sandbox#code=GYJw9gtgBAbgDgTwC4AswDsoEsJzCJKAKgCgc8CoIBDVEkgYikBHmwGFXAb9qkAq1wH5qAuKIBlxwAtjgF3GogE6bAADWASMcAuXVEAwy4FLx8YHPJwCKjgDgmh4wEmNGwAOTgA5qANIyiABLsAto4YUrxgDjrrOwHUNGwIuTgCaaJAOguANrWAkHWAFDNQgDUDooAwHeKGgBkNgBA1UIAyrbpQgAM9gBqrgClNUKKABOMAhBaAAKRl5RWVVdU1VfQAzgDGAKbozb4ARtSNANYA5uAArugAJlAAvLDNjUj4ABQADL4LAKymUEur60sAjACU9EzMgDodJB1gAB5zePXjMNOzIIvrALQ723vr9VgAXs13D3mACYFttfO8oPtzFAYVBGmAADb4cbwpEgXwDagIdZgODdLBIBDjJYrA5MQAAtYBCOcACeNzcKAGPaDvU4ChmiBmtcwLd7jN5qCNh91iBqCMsINbksgdDYbDUci5ei4M1uih1s0IFh6t97uMACogQbNA4I6gdZoIzncwFPflLABsgqgSGaFyQ4wA5FTqe7pTKFSjEfhfAB3FAE5rrVlYPooN07IEHCzUwCbzSESI1qCAJlBzlcbgDeU8XgB2V5LADMju+fwLj0WvgAHGCACwtz4kGWduGBkABtG+dkjNUarVYHX6w3rGg9ZoAfSQwqwCL1BojHa7sIX1CXs-9CoHzRGiaYKbCgA+ewAZ7UIztR6nPQM0AI7Z5vNhYwpgAQWb9BNZot+Y8nW-JAr4awbO2XbOq64wAESnlIUCADETgBJhIADWPHFA8SAIg1Pi+EIGSACprgALo1AgADtVAgAMdYAHWOADejgAvPYAHIOACljhSwb6so9n2QahuGkbNNGsbjDszbHlACHIehmHxIACDVQHM5aADFrUCABg9gCvPQcwD4HCCCNAizTYJgwroH0HLlnsfDrjCGaKly2ZAfMJZlr4lYQVZcKZr4enKiA86LhaBwyrx+kebZ9S+BcUAADxQMWlkbqFvg3NmNlJXZADUUyFvWOzgbagUbkwgAONYANZ1USpLAcFAgA7Q4ANd2ABAdoiABqD8mABdNgA4Q4RBVdiMkWTO+LyJTcEUflAXqLHsxGADiD4mpoAMnWGO5MrMs0h7ZrsKyjaeUCALGDzBzIAIeOABrj3Wdkw0jyHMvUAHwLHsUCAD8TiiABhDgCJhOsNh2I9L2AMmES2wlgwBQL1UDXRs4ICFA52yLkgCIk-9XYPs+kxdHes5I8QkLgisCNQOagPA5FMUvLskNMJ9cO4zKGMo7e97ss+RDgw2xa4+ad5k1AgBgY4AIuNYYAFQ1U7CNM5nT6MM7j9RgMMIxzEjYLxus7r1NQwazGAqA+uDOwNqdy36c0cD1qsp31AbRsVomcAgFg6BIHM7psJwvACNIgA0YykUCAL6jUDpblACkH3WIAE5Oez7bzlv733PUR7oHEAA" target="_blank">VPyLab에서 열기</a></div>
+  <div id="viewport"></div>
+  <div id="console"></div>
+
+  <script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.183.2/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183.2/examples/jsm/" } }
+  </script>
+
+  <script type="module">
+  import * as THREE from 'three';
+  const primitiveGeometry = (function e(e){return{pyramid(t){return new e.ConeGeometry(1,1,4,1,!1,Math.PI/4).rotateZ(-Math.PI/2).translate(.5,0,0).scale(t[0],t[1]/Math.SQRT2,t[2]/Math.SQRT2)},cylinder(t,n){return new e.CylinderGeometry(t,t,n,32).translate(0,n/2,0)},cone(t,n){return new e.ConeGeometry(t,n,32).translate(0,n/2,0)}}})(THREE);
+  const compoundAppearance = (function e(e){let t=new WeakMap,n=(e,t)=>{e.material&&(Array.isArray(e.material)?e.material:[e.material]).forEach(t),e.userData?.textMaterial&&t(e.userData.textMaterial)};function r(e,t,n=!1){let r=n||t<1;e.transparent!==r&&(e.needsUpdate=!0),e.opacity=t,e.transparent=r,e.depthWrite=!r}function i(r){let i=new Map;r.traverse(e=>{e!==r&&t.has(e)&&(t.get(e).frozen=!0),n(e,e=>{i.has(e)||(i.set(e,{color:e.color?.clone(),opacity:e.opacity??1,transparent:!!e.transparent}),e.userData||={},e.userData.vpInCompound=!0)})});let a={records:i,color:new e.Color(1,1,1),opacity:1};return t.set(r,a),a}function a(n,a){let o=t.get(n)||i(n);if(!o.frozen){a.color&&o.color.setRGB(...a.color),a.opacity!==void 0&&(o.opacity=a.opacity);for(let[t,n]of o.records){n.color&&t.color&&(t.color.copy(n.color).multiply(o.color),t.emissiveIntensity>0&&t.emissive&&t.emissive.copy(t.color)),r(t,n.opacity*o.opacity,n.transparent);let i=t.userData?.vpVertexOverrides;a.shininess!==void 0&&(i&&(i.shininess.value=a.shininess),`roughness`in t&&(t.roughness=Math.max(.05,1-a.shininess))),a.emissive!==void 0&&(i&&(i.emissive.value=+!!a.emissive),t.emissive&&t.emissive.copy(a.emissive?t.color:new e.Color(0,0,0)),`emissiveIntensity`in t&&(t.emissiveIntensity=a.emissive?.8:0),t.needsUpdate=!0)}}}return{init:i,apply:a,setOpacity:r}})(THREE);
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  // === Three.js 씬 셋업 ===
+  const container = document.getElementById('viewport');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d1117);
+
+  const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 8);
+  camera.lookAt(0, 0, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  const CameraSystem = (function e(e,t={AUTO_FIT:`auto-fit`,MANUAL:`manual`}){let n={fitPadding:1.8,fitMinDistance:1e-9,continuousFit:!1,framingLerpFactor:.25,centerLerpFactor:.12,zoomLerpFactor:.03,defaultDistance:10/Math.tan(Math.PI/6),defaultFov:60,preserveDirectionOnCenter:!0,ignoreTypes:[`GridHelper`,`AxesHelper`,`AmbientLight`,`DirectionalLight`,`PointLight`]};return class{constructor(r,i,a,o={}){this.camera=r,this.controls=i,this.scene=a,this.options={...n,...o},this.mode=t.AUTO_FIT,this._autoEnabled=!0,this._centerPinned=null,this._targetCenter=new e.Vector3(0,0,0),this._targetDistance=this.options.defaultDistance,this._currentCenter=new e.Vector3(0,0,0),this._currentDistance=this.options.defaultDistance,this._lastBounds=null,this._hasFit=!1,this._userInteracted=!1,this._frameCount=0,this._homeBox=new e.Box3,this._homeSeen=new WeakSet,this._codeAutoscale=!1,this._explicitRange=null,this._followTarget=null,this._onUserInteraction=()=>{this._autoEnabled=!1,this._explicitRange=null,this._centerPinned=null,this.mode!==t.MANUAL&&(this.mode=t.MANUAL,this._userInteracted=!0)};let s=i.domElement;s&&(this._pointerStart=null,this._onPointerDown=e=>{this._pointerStart=[e.clientX,e.clientY]},this._onPointerMove=e=>{this._pointerStart&&(this.controls.enableRotate!==!1||this.controls.enablePan!==!1)&&Math.hypot(e.clientX-this._pointerStart[0],e.clientY-this._pointerStart[1])>3&&this._onUserInteraction()},this._onPointerEnd=()=>{this._pointerStart=null},s.addEventListener(`pointerdown`,this._onPointerDown),s.addEventListener(`pointermove`,this._onPointerMove),s.addEventListener(`pointerup`,this._onPointerEnd),s.addEventListener(`pointercancel`,this._onPointerEnd),this._onWheel=()=>{this.controls.enableZoom!==!1&&this._onUserInteraction()},s.addEventListener(`wheel`,this._onWheel))}_getVPythonObjects(){let e=[],t=this.options.ignoreTypes;return this.scene.traverse(n=>{if(n!==this.scene){for(let e=n;e&&e!==this.scene;e=e.parent)if(e.visible===!1)return;n.isLight||t.some(e=>n.constructor.name===e)||n.type!==`GridHelper`&&n.type!==`AxesHelper`&&(n.isGroup&&n.parent===this.scene||(n.isMesh||n.isLine||n.isPoints)&&!n.parent?.isGroup)&&e.push(n)}}),e}_expandBoxByObject(e,t){let n=!1;if(t.isGroup)return t.traverse(r=>{if(!r.isMesh&&!r.isLine&&!r.isPoints||!r.geometry)return;for(let e=r;e&&e!==t.parent;e=e.parent)if(e.visible===!1)return;let i=r.geometry.getAttribute(`position`);if(r.geometry.boundingBox&&r.geometry.userData.vpBoundsVersion===i?.version||(r.geometry.computeBoundingBox(),r.geometry.userData.vpBoundsVersion=i?.version),!r.geometry.boundingBox)return;let a=r.geometry.boundingBox.clone();a.applyMatrix4(r.matrixWorld),e.union(a),n=!0}),n;if((t.isMesh||t.isLine||t.isPoints)&&t.geometry){let n=t.geometry.getAttribute(`position`);if(t.geometry.boundingBox&&t.geometry.userData.vpBoundsVersion===n?.version||(t.geometry.computeBoundingBox(),t.geometry.userData.vpBoundsVersion=n?.version),!t.geometry.boundingBox)return!1;let r=t.geometry.boundingBox.clone();return r.applyMatrix4(t.matrixWorld),e.union(r),!0}return!1}_computeCameraState(){let t=this._getVPythonObjects();if(t.length===0)return null;let n=new e.Box3,r=!1;for(let e of t)r=this._expandBoxByObject(n,e)||r;if(!r||n.isEmpty())return null;let i=new e.Vector3,a=new e.Vector3;return n.getCenter(i),n.getSize(a),{center:i,size:a,radius:a.length()/2}}_distanceForBounds(e){let t=this.camera.fov*(Math.PI/180),n=this.camera.aspect,r=2*Math.atan(Math.tan(t/2)*Math.min(1,n)),i=e*this.options.fitPadding/Math.tan(r/2);return i=Math.max(i,this.options.fitMinDistance),i}isContinuousFit(){return!!(this.options.continuousFit||this._codeAutoscale)}_resetHome(){this._homeBox.makeEmpty(),this._homeSeen=new WeakSet}_absorbNewObjects(t=!1){let n=!1,r=new e.Box3;for(let e of this._getVPythonObjects())this._homeSeen.has(e)||e.userData?.vpTrail&&!t||(r.makeEmpty(),this._expandBoxByObject(r,e)&&!r.isEmpty()&&[r.min.x,r.min.y,r.min.z,r.max.x,r.max.y,r.max.z].every(Number.isFinite)&&(this._homeSeen.add(e),(this._homeBox.isEmpty()||!this._homeBox.containsBox(r))&&(this._homeBox.union(r),n=!0)));return n}_homeState(){if(this._homeBox.isEmpty())return null;let t=new e.Vector3,n=new e.Vector3;return this._homeBox.getCenter(t),this._homeBox.getSize(n),{center:t,size:n,radius:n.length()/2}}_fitState(e){return!e||!this._centerPinned?e:{...e,radius:e.radius+e.center.distanceTo(this._centerPinned),center:this._centerPinned.clone()}}_autoFit(){if(!this._autoEnabled||this.mode===t.MANUAL)return;this.scene.updateMatrixWorld(!0);let n=this.isContinuousFit();n||this._absorbNewObjects();let r=this._fitState(n?this._computeCameraState():this._homeState());r?(this._targetCenter.copy(r.center),this._targetDistance=this._distanceForBounds(r.radius),this._lastBounds=r,this._hasFit=!0):(this._targetCenter.copy(this._centerPinned||new e.Vector3),this._targetDistance=this.options.defaultDistance)}update(){if(this._frameCount++,this.updateClipPlanes(),this._followTarget){if(!this._followTarget.parent)this._followTarget=null,this.mode=this._autoEnabled?t.AUTO_FIT:t.MANUAL;else{let t=new e.Vector3;if(this._followTarget.getWorldPosition(t),this._currentDistance=this._currentCameraDistance(),this._autoEnabled&&(this.scene.updateMatrixWorld(!0),this.isContinuousFit()||this._absorbNewObjects())){let e=this._computeCameraState();e&&(this._currentDistance=this._distanceForBounds(e.radius+e.center.distanceTo(t)))}this._targetDistance=this._currentDistance;let n=new e.Vector3().subVectors(this.camera.position,this.controls.target);n.lengthSq()<1e-24?n.set(0,0,1):n.normalize(),this._targetCenter.copy(t),this._currentCenter.copy(t),this.controls.target.copy(t),this.camera.position.copy(t).addScaledVector(n,this._currentDistance),this._cameraLimits(this._currentDistance);return}}if(this.mode===t.MANUAL)return;this.scene.updateMatrixWorld(!0);let n=this.isContinuousFit(),r=null;n?r=this._computeCameraState():this._absorbNewObjects()&&(r=this._homeState()),r=this._fitState(r),r&&(this._targetCenter.copy(r.center),this._targetDistance=this._distanceForBounds(r.radius),this._hasFit=!0,this._lastBounds=r);let i=n?this.options.centerLerpFactor:this.options.framingLerpFactor,a=n?this.options.zoomLerpFactor:this.options.framingLerpFactor;if(this._currentCenter.lerp(this._targetCenter,i),this._currentDistance+=(this._targetDistance-this._currentDistance)*a,!n){let e=1e-6*Math.max(this._targetDistance,1e-9);this._currentCenter.distanceTo(this._targetCenter)<=e&&this._currentCenter.copy(this._targetCenter),Math.abs(this._targetDistance-this._currentDistance)<=e&&(this._currentDistance=this._targetDistance)}let o=new e.Vector3;o.subVectors(this.camera.position,this.controls.target),o.lengthSq()<1e-24?o.set(0,0,1):o.normalize(),this.controls.target.copy(this._currentCenter),this._cameraLimits(this._currentDistance),this.camera.position.copy(this._currentCenter).addScaledVector(o,this._currentDistance)}resetToAutoFit({keepCenter:e=!1}={}){this._autoEnabled=!0,e||(this._centerPinned=null),this._syncCurrentView(),this.mode=t.AUTO_FIT,this._userInteracted=!1,this._followTarget=null,this._explicitRange=null,this._resetHome(),this.scene.updateMatrixWorld(!0),this._absorbNewObjects(!0),this._autoFit()}fitOnce(){if(this._codeAutoscale=!1,this.scene.updateMatrixWorld(!0),this._followTarget?.parent){let t=this._computeCameraState(),n=this._followTarget.getWorldPosition(new e.Vector3);t&&this._applyDistance(this._distanceForBounds(t.radius+t.center.distanceTo(n))),this._resetHome(),this._absorbNewObjects(!0)}else this.resetToAutoFit()}setContinuousFit(e){this.options.continuousFit=!!e,this.options.continuousFit?this._followTarget?this._autoEnabled=!0:this.resetToAutoFit():(this._codeAutoscale=!1,this.mode===t.AUTO_FIT&&!this._followTarget&&this._syncCurrentView(),this.scene.updateMatrixWorld(!0),this._resetHome(),this._absorbNewObjects(!0))}onCodeStart(){this._autoEnabled=!0,this._centerPinned=null,this.controls.enableZoom=this.controls.enableRotate=this.controls.enablePan=!0,this.mode=t.AUTO_FIT,this._userInteracted=!1,this._frameCount=0,this._followTarget=null,this._explicitRange=null,this._resetHome(),this._codeAutoscale=!1,this.controls.reset?.(),this.controls.target.set(0,0,0),this._currentCenter.set(0,0,0),this._targetCenter.set(0,0,0),this._currentDistance=this.options.defaultDistance/Math.min(1,this.camera.aspect||1),this._targetDistance=this._currentDistance,this.camera.position.set(0,0,this._currentDistance),this.camera.up.set(0,1,0),this.camera.fov=this.options.defaultFov,this.camera.updateProjectionMatrix(),this.camera.lookAt(this.controls.target),this.controls.update?.(),this._lastBounds=null,this._hasFit=!1}getMode(){return this.mode}setExplicitRange(e){!Number.isFinite(e)||e<=0||(this._autoEnabled=!1,this.mode=t.MANUAL,this._userInteracted=!0,this._explicitRange=e,this._applyDistance(this._distanceForRange(e)))}_distanceForRange(e){let t=this.camera.fov*(Math.PI/180),n=this.camera.aspect||1;return(n>=1?e:e/n)/Math.tan(t/2)}_syncCurrentView(){this._currentCenter.copy(this.controls.target),this._targetCenter.copy(this.controls.target),this._currentDistance=this._currentCameraDistance(),this._targetDistance=this._currentDistance}updateClipPlanes(){let e=this._currentCameraDistance();if(!(e>0)||!Number.isFinite(e))return;this.scene.updateMatrixWorld(!0);let t=this._computeCameraState(),n=t?this.camera.position.distanceTo(t.center)+t.radius:0,r=Math.max(1e-12,e/1e3),i=Math.max(r*100,e*100,n*1.1);(r!==this.camera.near||i!==this.camera.far)&&(this.camera.near=r,this.camera.far=i,this.camera.updateProjectionMatrix())}_cameraLimits(e){e>0&&Number.isFinite(e)&&(this.controls.minDistance=Math.min(this.controls.minDistance??1,e/10),this.controls.maxDistance=Math.max(this.controls.maxDistance??100,e*2),this.updateClipPlanes())}resize(e,n){if(!(e>0&&n>0))return;let r=this.getRange();this.camera.aspect=e/n,this.camera.updateProjectionMatrix(),this.mode===t.MANUAL||this._followTarget?this._applyDistance(this._distanceForRange(r)):this._autoFit()}_applyDistance(e){this._cameraLimits(e),this._targetDistance=e,this._currentDistance=e;let t=this._viewDirection();this.camera.position.copy(this.controls.target).addScaledVector(t,e),this._currentCenter.copy(this.controls.target),this._targetCenter.copy(this.controls.target),this.updateClipPlanes()}_viewDirection(){let t=new e.Vector3().subVectors(this.camera.position,this.controls.target);return t.lengthSq()<1e-24?t.set(0,0,1):t.normalize(),t}_currentCameraDistance(){let e=this.camera.position.distanceTo(this.controls.target);return e>1e-12?e:this._currentDistance}setForward(n,r,i){let a=new e.Vector3(n,r,i);if(a.lengthSq()<1e-24)return;a.normalize();let o=this._currentCameraDistance();this.camera.position.copy(this.controls.target).addScaledVector(a,-o),this.mode===t.MANUAL&&(this._currentDistance=o,this._targetDistance=o),this.camera.lookAt(this.controls.target)}setUp(t,n,r){let i=new e.Vector3(t,n,r);i.lengthSq()<1e-24||(this.camera.up.copy(i.normalize()),this.controls._quat?.setFromUnitVectors(this.camera.up,new e.Vector3(0,1,0)),this.controls._quatInverse?.copy(this.controls._quat).invert(),this.camera.lookAt(this.controls.target))}setFov(e){if(!Number.isFinite(e)||e<=0||e>=Math.PI)return;let n=this.getRange();this.camera.fov=180/Math.PI*e,this.camera.updateProjectionMatrix(),this.mode===t.MANUAL?this._applyDistance(this._distanceForRange(n)):this.mode===t.AUTO_FIT&&this._autoFit()}setCameraPos(n,r,i){this._autoEnabled=!1,this._centerPinned=null,this.mode=t.MANUAL,this._userInteracted=!0,this._followTarget=null;let a=new e.Vector3(n,r,i),o=a.clone().sub(this.camera.position);this.controls.target.add(o),this.camera.position.copy(a),this._currentCenter.copy(this.controls.target),this._targetCenter.copy(this.controls.target)}setCameraAxis(n,r,i){this._autoEnabled=!1,this._centerPinned=null;let a=new e.Vector3(n,r,i);a.lengthSq()<1e-24||(this.mode=t.MANUAL,this._userInteracted=!0,this._followTarget=null,this.controls.target.copy(this.camera.position).add(a),this._currentCenter.copy(this.controls.target),this._targetCenter.copy(this.controls.target),this._currentDistance=a.length(),this._targetDistance=this._currentDistance,this._cameraLimits(this._currentDistance),this._explicitRange=this.getRange(),this.camera.lookAt(this.controls.target))}followObject(n){if(this._followTarget=n||null,n){if(this._autoEnabled){this.scene.updateMatrixWorld(!0);let t=this._computeCameraState(),r=n.getWorldPosition(new e.Vector3);t&&this._applyDistance(this._distanceForBounds(t.radius+t.center.distanceTo(r)))}this.mode=t.MANUAL,this._currentDistance=this._currentCameraDistance(),this._targetDistance=this._currentDistance;let r=n.getWorldPosition(new e.Vector3),i=this._viewDirection();this.controls.target.copy(r),this._currentCenter.copy(r),this._targetCenter.copy(r),this.camera.position.copy(r).addScaledVector(i,this._currentDistance)}else this.mode=this._autoEnabled?t.AUTO_FIT:t.MANUAL,this._userInteracted=!0}getRange(){return this._rangeForDistance(this._currentCameraDistance())}_rangeForDistance(e){let t=this.camera.fov*(Math.PI/180),n=this.camera.aspect||1,r=e*Math.tan(t/2);return n>=1?r:r*n}getState(){let t=new e.Vector3().subVectors(this.controls.target,this.camera.position);t.lengthSq()<1e-24?t.set(0,0,-1):t.normalize();let n=this.camera.position,r=this.controls.target,i=this.camera.up;return{pos:[n.x,n.y,n.z],center:[r.x,r.y,r.z],forward:[t.x,t.y,t.z],up:[i.x,i.y,i.z],range:this.getRange(),fov:this.camera.fov*(Math.PI/180),aspect:this.camera.aspect||1,autoscale:this._autoEnabled}}setExplicitCenter(n,r,i){if(this._centerPinned=new e.Vector3(n,r,i),this.mode=this._autoEnabled?t.AUTO_FIT:t.MANUAL,this._userInteracted=!0,this._followTarget=null,this.options.preserveDirectionOnCenter){let t=new e.Vector3(n,r,i).sub(this.controls.target);this.camera.position.add(t)}this._targetCenter.set(n,r,i),this._currentCenter.set(n,r,i),this.controls.target.copy(this._currentCenter)}setPreserveDirectionOnCenter(e){this.options.preserveDirectionOnCenter=!!e}setAutoscale(e){this._codeAutoscale=!!e,this._followTarget?this._autoEnabled=!!e:e?this.resetToAutoFit({keepCenter:!0}):(this._autoEnabled=!1,this.mode=t.MANUAL,this._userInteracted=!0)}dispose(){let e=this.controls?.domElement;e&&(e.removeEventListener(`pointerdown`,this._onPointerDown),e.removeEventListener(`pointermove`,this._onPointerMove),e.removeEventListener(`pointerup`,this._onPointerEnd),e.removeEventListener(`pointercancel`,this._onPointerEnd),e.removeEventListener(`wheel`,this._onWheel))}}})(THREE);
+  const cameraSystem = new CameraSystem(camera, controls, scene);
+  cameraSystem.onCodeStart();
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(5, 10, 7);
+  scene.add(dirLight);
+
+  window.addEventListener('resize', () => {
+    cameraSystem.resize(innerWidth, innerHeight);
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    cameraSystem.update();
+    controls.update();
+    cameraSystem.updateClipPlanes();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // === 콘솔 출력 ===
+  const consoleEl = document.getElementById('console');
+  function logToConsole(text) {
+    consoleEl.classList.add('visible');
+    const line = document.createElement('div');
+    line.textContent = text;
+    consoleEl.appendChild(line);
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+
+  // === 사운드 시스템 (Web Audio API) ===
+  let audioCtx = null;
+  let audioUnlocked = false;
+  let audioUnlockPending = null;
+  let iosMediaUnlocked = false;
+  let iosMediaUnlockPending = null;
+  let silentMediaDataUri = null;
+  function getAudioCtx() {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!audioCtx) audioCtx = new AudioContextClass();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function isIOSDevice() {
+    const ua = navigator.userAgent || '';
+    const platform = navigator.platform || '';
+    const touchPoints = navigator.maxTouchPoints || 0;
+    return /iPad|iPhone|iPod/.test(ua) || (platform === 'MacIntel' && touchPoints > 1);
+  }
+  function writeWavString(view, offset, value) {
+    for (let i = 0; i < value.length; i++) view.setUint8(offset + i, value.charCodeAt(i));
+  }
+  function getSilentMediaDataUri() {
+    if (silentMediaDataUri) return silentMediaDataUri;
+    const sampleRate = 8000;
+    const durationSeconds = 0.2;
+    const sampleCount = Math.floor(sampleRate * durationSeconds);
+    const dataSize = sampleCount * 2;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+    writeWavString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeWavString(view, 8, 'WAVE');
+    writeWavString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeWavString(view, 36, 'data');
+    view.setUint32(40, dataSize, true);
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    silentMediaDataUri = 'data:audio/wav;base64,' + btoa(binary);
+    return silentMediaDataUri;
+  }
+  function playSilentUnlockBuffer(ctx) {
+    try {
+      const b = ctx.createBuffer(1, 1, 22050);
+      const s = ctx.createBufferSource();
+      s.buffer = b;
+      s.connect(ctx.destination);
+      s.start(0);
+    } catch (_) {}
+  }
+  async function ensureIOSMediaPlayback() {
+    if (!isIOSDevice()) return true;
+    if (iosMediaUnlocked) return true;
+    if (!iosMediaUnlockPending) {
+      iosMediaUnlockPending = (async () => {
+        try {
+          const audio = document.createElement('audio');
+          audio.src = getSilentMediaDataUri();
+          audio.preload = 'auto';
+          audio.playsInline = true;
+          audio.setAttribute('playsinline', '');
+          audio.setAttribute('webkit-playsinline', '');
+          await audio.play();
+          iosMediaUnlocked = true;
+        } catch (_) {}
+        return iosMediaUnlocked;
+      })().finally(() => { iosMediaUnlockPending = null; });
+    }
+    return iosMediaUnlockPending;
+  }
+  async function ensureAudioReady() {
+    const ctx = getAudioCtx();
+    if (!ctx) return false;
+    const iosReadyPromise = ensureIOSMediaPlayback();
+    if (ctx.state === 'running') {
+      audioUnlocked = true;
+      const iosReady = await iosReadyPromise;
+      return isIOSDevice() ? iosReady : true;
+    }
+    if (!audioUnlockPending) {
+      audioUnlockPending = (async () => {
+        try { await ctx.resume(); } catch (_) {}
+        playSilentUnlockBuffer(ctx);
+        const iosReady = await iosReadyPromise;
+        if (ctx.state === 'running') audioUnlocked = true;
+        return isIOSDevice() ? (ctx.state === 'running' && iosReady) : ctx.state === 'running';
+      })().finally(() => { audioUnlockPending = null; });
+    }
+    return audioUnlockPending;
+  }
+  // 모바일 오디오 잠금 해제 (iOS Safari 등)
+  (function initAudioGesture() {
+    const evts = ['pointerdown','touchstart','touchend','click','keydown'];
+    const unlock = () => {
+      if (audioUnlocked) return;
+      ensureAudioReady().then((ready) => {
+        if (ready) evts.forEach(e => document.removeEventListener(e, unlock, true));
+      }).catch(() => {});
+    };
+    evts.forEach(e=>document.addEventListener(e,unlock,true));
+  })();
+
+  function beep(frequency = 440, duration = 0.3, type = 'sine', volume = 0.3) {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = frequency;
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  }
+
+  // 노트 이름 → 주파수
+  const NOTE_NAMES = {
+    'C':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'Fb':4,
+    'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,'Cb':11
+  };
+  function noteToFreq(name) {
+    if (!name || name.length < 2) return null;
+    let notePart, octave;
+    if (name.length >= 3 && (name[1] === '#' || name[1] === 'b')) {
+      notePart = name.slice(0, 2); octave = parseInt(name.slice(2), 10);
+    } else {
+      notePart = name[0]; octave = parseInt(name.slice(1), 10);
+    }
+    const semitone = NOTE_NAMES[notePart];
+    if (semitone === undefined || isNaN(octave)) return null;
+    return 440 * Math.pow(2, ((octave - 4) * 12 + (semitone - 9)) / 12);
+  }
+
+  function playNote(name, duration, type, volume) {
+    const freq = noteToFreq(name);
+    if (freq) beep(freq, duration || 0.5, type || 'sine', volume || 0.4);
+  }
+
+  function playChord(frequencies, duration, type, volume) {
+    if (!frequencies) return;
+    for (const freq of frequencies) beep(freq, duration || 1.0, type || 'sine', volume || 0.25);
+  }
+
+  function playSequence(notes) {
+    if (!notes) return;
+    let delay = 0;
+    for (const n of notes) {
+      if (delay === 0) beep(n.freq, n.duration, n.type||'sine', n.volume||0.4);
+      else { const d = delay; setTimeout(() => beep(n.freq, n.duration, n.type||'sine', n.volume||0.4), d); }
+      delay += n.duration * 1000;
+    }
+  }
+
+  // SFX 함수들
+  function sfxJump() { const c=getAudioCtx(),o=c.createOscillator(),g=c.createGain(); o.type='square'; o.frequency.setValueAtTime(300,c.currentTime); o.frequency.exponentialRampToValueAtTime(600,c.currentTime+0.15); g.gain.setValueAtTime(0.2,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.2); o.connect(g); g.connect(c.destination); o.start(c.currentTime); o.stop(c.currentTime+0.2); }
+  function sfxCoin() { beep(988,0.06,'square',0.2); setTimeout(()=>beep(1319,0.12,'square',0.2),60); }
+  function sfxPowerUp() { [523,659,784,988,1175,1319].forEach((f,i)=>setTimeout(()=>beep(f,0.08,'square',0.15),i*50)); }
+  function sfxDeath() { [494,466,440,370,311,247].forEach((f,i)=>setTimeout(()=>beep(f,0.15,'square',0.15),i*100)); }
+  function sfxFireball() { const c=getAudioCtx(),o=c.createOscillator(),g=c.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(900,c.currentTime); o.frequency.exponentialRampToValueAtTime(150,c.currentTime+0.15); g.gain.setValueAtTime(0.15,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.15); o.connect(g); g.connect(c.destination); o.start(c.currentTime); o.stop(c.currentTime+0.15); }
+  function sfxPipe() { const c=getAudioCtx(),o=c.createOscillator(),g=c.createGain(); o.type='square'; o.frequency.setValueAtTime(500,c.currentTime); o.frequency.exponentialRampToValueAtTime(100,c.currentTime+0.2); o.frequency.exponentialRampToValueAtTime(400,c.currentTime+0.4); g.gain.setValueAtTime(0.15,c.currentTime); g.gain.linearRampToValueAtTime(0.15,c.currentTime+0.3); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.4); o.connect(g); g.connect(c.destination); o.start(c.currentTime); o.stop(c.currentTime+0.4); }
+  function sfx1Up() { [659,784,988,784,988,1319].forEach((f,i)=>setTimeout(()=>beep(f,0.1,'square',0.18),i*80)); }
+  function sfxSelect() { beep(660,0.05,'square',0.12); }
+  function sfxWarning() { beep(440,0.15,'square',0.2); setTimeout(()=>beep(440,0.15,'square',0.2),250); setTimeout(()=>beep(440,0.15,'square',0.2),500); }
+  function sfxExplosion() { const c=getAudioCtx(); const bs=c.sampleRate*0.4; const buf=c.createBuffer(1,bs,c.sampleRate); const d=buf.getChannelData(0); for(let i=0;i<bs;i++)d[i]=Math.random()*2-1; const n=c.createBufferSource(); n.buffer=buf; const g=c.createGain(); g.gain.setValueAtTime(0.3,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.4); const f=c.createBiquadFilter(); f.type='lowpass'; f.frequency.setValueAtTime(1000,c.currentTime); f.frequency.exponentialRampToValueAtTime(100,c.currentTime+0.4); n.connect(f); f.connect(g); g.connect(c.destination); n.start(c.currentTime); n.stop(c.currentTime+0.4); }
+  function sfxLaser() { const c=getAudioCtx(),o=c.createOscillator(),g=c.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(1500,c.currentTime); o.frequency.exponentialRampToValueAtTime(200,c.currentTime+0.2); g.gain.setValueAtTime(0.15,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.2); o.connect(g); g.connect(c.destination); o.start(c.currentTime); o.stop(c.currentTime+0.2); }
+  function sfxSuccess() { beep(523,0.15,'sine',0.2); setTimeout(()=>beep(659,0.15,'sine',0.2),100); setTimeout(()=>beep(784,0.3,'sine',0.2),200); }
+  function sfxError() { beep(200,0.3,'square',0.15); }
+  function sfxLevelUp() { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.2,'sine',0.2),i*120)); }
+
+  const SFX_MAP = { jump:sfxJump, coin:sfxCoin, powerup:sfxPowerUp, power_up:sfxPowerUp, death:sfxDeath, fireball:sfxFireball, pipe:sfxPipe, '1up':sfx1Up, oneup:sfx1Up, select:sfxSelect, warning:sfxWarning, explosion:sfxExplosion, laser:sfxLaser, success:sfxSuccess, error:sfxError, levelup:sfxLevelUp, level_up:sfxLevelUp };
+  function playSfx(name) { const fn = SFX_MAP[name?.toLowerCase()]; if (fn) fn(); }
+
+  // BGM 시스템
+  let currentBgm = null;
+  const BGM_PATTERNS = {
+    adventure: { notes:['C4','E4','G4','C5','B4','G4','E4','G4','A4','C5','E5','A4','G4','E4','C4','E4','F4','A4','C5','F4','E4','C4','A3','C4','G4','B4','D5','G4','F4','D4','B3','D4'], durations:[0.15,0.15,0.15,0.3,0.15,0.15,0.15,0.3,0.15,0.15,0.15,0.3,0.15,0.15,0.15,0.3,0.15,0.15,0.15,0.3,0.15,0.15,0.15,0.3,0.15,0.15,0.15,0.3,0.15,0.15,0.15,0.3], type:'square', volume:0.12 },
+    explore: { notes:['E4','G4','A4','B4','E4','G4','A4','G4','D4','F#4','A4','D5','D4','F#4','A4','F#4','C4','E4','G4','C5','C4','E4','G4','E4','B3','D#4','F#4','B4','B3','D#4','F#4','D#4'], durations:[0.2,0.2,0.2,0.4,0.2,0.2,0.2,0.4,0.2,0.2,0.2,0.4,0.2,0.2,0.2,0.4,0.2,0.2,0.2,0.4,0.2,0.2,0.2,0.4,0.2,0.2,0.2,0.4,0.2,0.2,0.2,0.4], type:'triangle', volume:0.1 },
+    battle: { notes:['A4','A4','C5','A4','D5','C5','A4','A4','G4','G4','Bb4','G4','C5','Bb4','G4','G4','F4','F4','A4','F4','C5','A4','F4','F4','E4','E4','G4','E4','B4','G4','E4','E4'], durations:[0.1,0.1,0.1,0.1,0.15,0.1,0.1,0.15,0.1,0.1,0.1,0.1,0.15,0.1,0.1,0.15,0.1,0.1,0.1,0.1,0.15,0.1,0.1,0.15,0.1,0.1,0.1,0.1,0.15,0.1,0.1,0.15], type:'square', volume:0.12 },
+    peaceful: { notes:['C4','E4','G4','C5','G4','E4','F4','A4','C5','F5','C5','A4','G4','B4','D5','G5','D5','B4','C4','E4','G4','C5','G4','E4'], durations:[0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3], type:'sine', volume:0.1 },
+    victory: { notes:['C5','C5','C5','C5','Ab4','Bb4','C5','Bb4','C5','E5','E5','E5','E5','C5','D5','E5','D5','E5','G5','G5','F5','E5','D5','C5','D5','E5','C5'], durations:[0.12,0.12,0.12,0.35,0.12,0.12,0.12,0.12,0.45,0.12,0.12,0.12,0.35,0.12,0.12,0.12,0.12,0.45,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.6], type:'square', volume:0.15 },
+  };
+
+  function startBgm(name, loop) {
+    stopBgm();
+    const pattern = BGM_PATTERNS[name?.toLowerCase()];
+    if (!pattern) return;
+    let running = true, timeoutIds = [];
+    function playPattern() {
+      if (!running) return;
+      let delay = 0;
+      for (let i = 0; i < pattern.notes.length; i++) {
+        const freq = noteToFreq(pattern.notes[i]);
+        const dur = pattern.durations[i] || 0.2;
+        if (freq) { const d=delay; const tid=setTimeout(()=>{ if(running) beep(freq,dur*0.9,pattern.type,pattern.volume); },d); timeoutIds.push(tid); }
+        delay += dur * 1000;
+      }
+      if (loop !== false) { const tid=setTimeout(()=>{ if(running) playPattern(); },delay); timeoutIds.push(tid); }
+    }
+    currentBgm = { name, stop:()=>{ running=false; timeoutIds.forEach(id=>clearTimeout(id)); timeoutIds=[]; } };
+    playPattern();
+  }
+
+  function stopBgm() {
+    if (currentBgm) { currentBgm.stop(); currentBgm = null; }
+  }
+
+  // 사운드 커맨드 처리
+  function processSoundCmd(cmd) {
+    switch (cmd.method) {
+      case 'beep': beep(cmd.frequency||440, cmd.duration||0.3, cmd.type||'sine', cmd.volume||0.3); break;
+      case 'note': playNote(cmd.name, cmd.duration||0.5, cmd.type||'sine', cmd.volume||0.4); break;
+      case 'chord': playChord(cmd.frequencies||[], cmd.duration||1.0, cmd.type||'sine', cmd.volume||0.25); break;
+      case 'sequence': playSequence(cmd.notes||[]); break;
+      case 'sfx': playSfx(cmd.name); break;
+      case 'bgm_start': startBgm(cmd.name, cmd.loop); break;
+      case 'bgm_stop': stopBgm(); break;
+    }
+  }
+
+  // === 차트 시스템 (Three.js 네이티브 3D) ===
+  function lerp(a,b,t) { return a+(b-a)*t; }
+  function interpolateStops(stops,t) {
+    t=Math.max(0,Math.min(1,t));
+    if(t<=stops[0][0]) return [stops[0][1],stops[0][2],stops[0][3]];
+    if(t>=stops[stops.length-1][0]) return [stops[stops.length-1][1],stops[stops.length-1][2],stops[stops.length-1][3]];
+    for(let i=0;i<stops.length-1;i++) {
+      if(t>=stops[i][0]&&t<=stops[i+1][0]) {
+        const l=(t-stops[i][0])/(stops[i+1][0]-stops[i][0]);
+        return [lerp(stops[i][1],stops[i+1][1],l),lerp(stops[i][2],stops[i+1][2],l),lerp(stops[i][3],stops[i+1][3],l)];
+      }
+    }
+    return [stops[0][1],stops[0][2],stops[0][3]];
+  }
+  const COLORMAPS = {
+    viridis: t=>interpolateStops([[0,0.267,0.004,0.329],[0.25,0.282,0.14,0.458],[0.5,0.127,0.566,0.551],[0.75,0.544,0.773,0.247],[1,0.993,0.906,0.144]],t),
+    plasma: t=>interpolateStops([[0,0.05,0.03,0.53],[0.25,0.494,0.012,0.658],[0.5,0.798,0.28,0.47],[0.75,0.973,0.585,0.253],[1,0.94,0.975,0.131]],t),
+    rainbow: t=>interpolateStops([[0,1,0,0],[0.167,1,0.5,0],[0.333,1,1,0],[0.5,0,1,0],[0.667,0,1,1],[0.833,0,0,1],[1,0.6,0,1]],t),
+    coolwarm: t=>interpolateStops([[0,0.23,0.3,0.75],[0.5,0.97,0.97,0.97],[1,0.71,0.015,0.15]],t),
+    ocean: t=>interpolateStops([[0,0,0.07,0.28],[0.33,0,0.27,0.53],[0.67,0,0.69,0.76],[1,0.32,0.87,0.46]],t),
+  };
+  function getColormap(name) { return COLORMAPS[name] || COLORMAPS.rainbow; }
+
+  const chartObjects = [];
+  function clearCharts() {
+    chartObjects.forEach(o => { scene.remove(o); if(o.geometry)o.geometry.dispose(); if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();} });
+    chartObjects.length = 0;
+  }
+  function tagChart(m) { chartObjects.push(m); return m; }
+
+  function renderChart(cmd) {
+    clearCharts();
+    switch(cmd.chart_type) {
+      case 'scatter3d': {
+        const pts=cmd.points||[]; if(!pts.length)return;
+        const r=cmd.size??0.08, op=cmd.opacity??0.9, cmap=getColormap(cmd.colormap||'rainbow');
+        let zMin=Infinity,zMax=-Infinity;
+        for(const p of pts){if(p[2]<zMin)zMin=p[2];if(p[2]>zMax)zMax=p[2];}
+        const zRange=zMax-zMin||1;
+        const geo=new THREE.SphereGeometry(r,16,12);
+        const mat=new THREE.MeshStandardMaterial({roughness:0.3,metalness:0.15,transparent:op<1,opacity:op,emissive:new THREE.Color(0.05,0.05,0.1),emissiveIntensity:0.4});
+        const mesh=new THREE.InstancedMesh(geo,mat,pts.length);
+        const dummy=new THREE.Object3D(), col=new THREE.Color();
+        for(let i=0;i<pts.length;i++){
+          dummy.position.set(pts[i][0],pts[i][1],pts[i][2]); dummy.updateMatrix(); mesh.setMatrixAt(i,dummy.matrix);
+          if(cmd.colors&&cmd.colors[i]){const c=cmd.colors[i];col.setRGB(c[0],c[1],c[2]);}
+          else{const t=(pts[i][2]-zMin)/zRange;const[cr,cg,cb]=cmap(t);col.setRGB(cr,cg,cb);}
+          mesh.setColorAt(i,col);
+        }
+        mesh.instanceMatrix.needsUpdate=true; if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;
+        tagChart(mesh); scene.add(mesh); break;
+      }
+      case 'surface3d': {
+        const zData=cmd.z_data||[]; if(!zData.length)return;
+        const rows=zData.length, cols=zData[0].length;
+        const xR=cmd.x_range||[-5,5], yR=cmd.y_range||[-5,5];
+        const op=cmd.opacity??0.85, cmap=getColormap(cmd.colormap||'viridis');
+        let zMin=Infinity,zMax=-Infinity;
+        for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){const z=zData[i][j];if(z<zMin)zMin=z;if(z>zMax)zMax=z;}
+        const zRange=zMax-zMin||1;
+        const geo=new THREE.PlaneGeometry(xR[1]-xR[0],yR[1]-yR[0],cols-1,rows-1);
+        const pos=geo.attributes.position, vc=pos.count, colors=new Float32Array(vc*3);
+        for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+          const idx=i*cols+j, z=zData[i][j]; pos.setZ(idx,z);
+          const t=(z-zMin)/zRange;const[cr,cg,cb]=cmap(t); colors[idx*3]=cr;colors[idx*3+1]=cg;colors[idx*3+2]=cb;
+        }
+        geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3)); geo.computeVertexNormals();
+        const mat=new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide,roughness:0.35,metalness:0.1,transparent:op<1,opacity:op,emissive:new THREE.Color(0.02,0.02,0.05),emissiveIntensity:0.3});
+        const m=new THREE.Mesh(geo,mat); m.rotation.x=-Math.PI/2; m.position.set((xR[0]+xR[1])/2,0,(yR[0]+yR[1])/2);
+        tagChart(m); scene.add(m);
+        if(cmd.wireframe!==false){const wm=new THREE.MeshBasicMaterial({color:0x111122,wireframe:true,transparent:true,opacity:0.12}); const wMesh=new THREE.Mesh(geo.clone(),wm); wMesh.rotation.x=-Math.PI/2; wMesh.position.copy(m.position); tagChart(wMesh); scene.add(wMesh);}
+        break;
+      }
+      case 'line3d': {
+        const pts=cmd.points||[]; if(pts.length<2)return;
+        const lc=cmd.color||[0,0.8,1], tr=cmd.width??0.03;
+        const curvePoints=pts.map(p=>new THREE.Vector3(p[0],p[1],p[2]));
+        const curve=new THREE.CatmullRomCurve3(curvePoints,false,'centripetal');
+        const geo=new THREE.TubeGeometry(curve,Math.max(pts.length*8,64),tr,8,false);
+        const c=new THREE.Color(lc[0],lc[1],lc[2]);
+        const mat=new THREE.MeshStandardMaterial({color:c,roughness:0.25,metalness:0.2,emissive:c.clone().multiplyScalar(0.35),emissiveIntensity:0.6});
+        const m=new THREE.Mesh(geo,mat); tagChart(m); scene.add(m); break;
+      }
+      case 'bar3d': {
+        const vals=cmd.values||[]; if(!vals.length)return;
+        const bw=cmd.bar_width??0.6, cmap=getColormap(cmd.colormap||'plasma');
+        let vMin=Infinity,vMax=-Infinity;
+        for(const v of vals){if(v<vMin)vMin=v;if(v>vMax)vMax=v;}
+        const vRange=vMax-vMin||1, sp=bw*1.4;
+        for(let i=0;i<vals.length;i++){
+          const h=vals[i],geo=new THREE.BoxGeometry(bw,Math.abs(h),bw);
+          let cr,cg,cb;
+          if(cmd.colors&&cmd.colors[i])[cr,cg,cb]=cmd.colors[i]; else{const t=(h-vMin)/vRange;[cr,cg,cb]=cmap(t);}
+          const c=new THREE.Color(cr,cg,cb);
+          const mat=new THREE.MeshStandardMaterial({color:c,roughness:0.3,metalness:0.15,emissive:c.clone().multiplyScalar(0.2),emissiveIntensity:0.4});
+          const m=new THREE.Mesh(geo,mat); m.position.set((i-(vals.length-1)/2)*sp,Math.abs(h)/2,0); tagChart(m); scene.add(m);
+        }
+        break;
+      }
+    }
+    // 축 & 그리드
+    if(cmd.show_axes!==false){
+      const gs=10,gd=20;
+      const grid=new THREE.GridHelper(gs,gd,0x444466,0x333355); grid.material.opacity=0.15; grid.material.transparent=true; tagChart(grid); scene.add(grid);
+      const al=gs/2;
+      [[1,0,0,0.9,0.2,0.2],[0,1,0,0.2,0.9,0.2],[0,0,1,0.2,0.2,0.9]].forEach(([dx,dy,dz,r,g,b])=>{
+        const pts=[new THREE.Vector3(0,0,0),new THREE.Vector3(dx*al,dy*al,dz*al)];
+        const geo=new THREE.BufferGeometry().setFromPoints(pts);
+        const mat=new THREE.LineBasicMaterial({color:new THREE.Color(r,g,b),transparent:true,opacity:0.6});
+        const line=new THREE.Line(geo,mat); tagChart(line); scene.add(line);
+      });
+    }
+  }
+
+  // === 브릿지: JSON 커맨드 → Three.js ===
+  const meshes = new Map();
+  const trails = new Map();
+  const curves = new Map();   // curve/points 동적 라인
+  function toColor(arr) { return new THREE.Color(arr[0], arr[1], arr[2]); }
+
+  // box를 axis/up 기준으로 회전 (Gram-Schmidt 직교화 — 메인 엔진과 동일)
+  function applyBoxOrientation(mesh) {
+    const axis = mesh.userData.boxAxis || [1,0,0];
+    const up = mesh.userData.boxUp || [0,1,0];
+    const xAxis = new THREE.Vector3(...axis);
+    if (xAxis.lengthSq() < 1e-12) xAxis.set(1,0,0); else xAxis.normalize();
+    const yAxis = new THREE.Vector3(...up);
+    if (yAxis.lengthSq() < 1e-12) yAxis.set(0,1,0);
+    yAxis.addScaledVector(xAxis, -yAxis.dot(xAxis));
+    if (yAxis.lengthSq() < 1e-12) {
+      if (Math.abs(xAxis.y) < 0.9) yAxis.set(0,1,0); else yAxis.set(0,0,1);
+      yAxis.addScaledVector(xAxis, -yAxis.dot(xAxis));
+    }
+    yAxis.normalize();
+    const zAxis = new THREE.Vector3().crossVectors(xAxis, yAxis).normalize();
+    yAxis.crossVectors(zAxis, xAxis).normalize();
+    mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis));
+  }
+
+  // arrow 그룹 길이/굵기 재구성 (VPython: |axis| = 길이)
+  function rebuildArrow(group, len, sw) {
+    const [shaft, head] = group.children;
+    if (shaft?.geometry) { shaft.geometry.dispose(); shaft.geometry = new THREE.CylinderGeometry(sw/2, sw/2, len*0.8, 8); shaft.position.y = len*0.4; }
+    if (head?.geometry) { head.geometry.dispose(); head.geometry = new THREE.ConeGeometry(sw*1.5, len*0.2, 8); head.position.y = len*0.9; }
+  }
+
+  // helix 길이 재구성 (radius/coils는 생성 시 값 유지)
+  function rebuildHelixLen(line, len) {
+    const r = line.userData.helixRadius || 1; const coils = line.userData.helixCoils || 5;
+    const seg = Math.max(64, coils*32); const positions = [];
+    for (let i=0;i<=seg;i++){const t=i/seg;const ang=t*coils*Math.PI*2;positions.push(t*len, r*Math.cos(ang), r*Math.sin(ang));}
+    line.geometry.dispose();
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    g.computeBoundingSphere();
+    line.geometry = g;
+  }
+
+  function createTrail(cmd) {
+    const trailColor = cmd.trail_color ? toColor(cmd.trail_color) : toColor(cmd.color || [1,1,1]);
+    const trailMat = new THREE.LineBasicMaterial({ color: trailColor });
+    const trailGeo = new THREE.BufferGeometry();
+    const positions = [];
+    if (cmd.pos) positions.push(cmd.pos[0], cmd.pos[1], cmd.pos[2]);
+    trailGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const trailLine = new THREE.Line(trailGeo, trailMat);
+    trailLine.userData.vpTrail = true;
+    scene.add(trailLine);
+    trails.set(cmd.id, { line: trailLine, positions, maxPoints: 10000 });
+  }
+
+  function updateTrail(cmd) {
+    const trail = trails.get(cmd.id);
+    if (!trail) return;
+    trail.positions.push(cmd.pos[0], cmd.pos[1], cmd.pos[2]);
+    if (trail.positions.length > trail.maxPoints * 3) trail.positions.splice(0, 3);
+    trail.line.geometry.setAttribute('position', new THREE.Float32BufferAttribute(trail.positions, 3));
+    trail.line.geometry.computeBoundingSphere();
+  }
+
+  function cloneColor(color) {
+    return typeof color?.clone === 'function'
+      ? color.clone()
+      : new THREE.Color(color?.r ?? 0, color?.g ?? 0, color?.b ?? 0);
+  }
+
+  function setMaterialEmissive(material, enabled) {
+    if (!material || !('emissive' in material)) return;
+    material.emissive = enabled ? cloneColor(material.color) : new THREE.Color(0, 0, 0);
+    material.emissiveIntensity = enabled ? 0.8 : 0;
+    material.needsUpdate = true;
+  }
+
+  function updateMaterialColor(material, color) {
+    if (!material) return;
+    material.color = color;
+    if ('emissiveIntensity' in material && material.emissiveIntensity > 0) {
+      material.emissive = cloneColor(color);
+    }
+  }
+
+  function processCmd(cmd) {
+    if (cmd.action === 'create') {
+      let mesh;
+      const baseColor = toColor(cmd.color || [1,1,1]);
+      const mat = new THREE.MeshStandardMaterial({
+        color: baseColor, roughness: cmd.shininess === undefined ? 0.4 : Math.max(0.05,1-cmd.shininess), metalness: 0.1,
+        emissive: cmd.emissive ? cloneColor(baseColor) : new THREE.Color(0,0,0),
+        emissiveIntensity: cmd.emissive ? 0.8 : 0,
+        transparent: (cmd.opacity ?? 1) < 1, opacity: cmd.opacity ?? 1,
+      });
+      switch (cmd.type) {
+        case 'sphere': mesh = new THREE.Mesh(new THREE.SphereGeometry(cmd.radius || 1, 32, 16), mat); break;
+        case 'box': { const s = cmd.size || [cmd.length||1, cmd.height||1, cmd.width||1]; mesh = new THREE.Mesh(new THREE.BoxGeometry(s[0],s[1],s[2]), mat); break; }
+        case 'cylinder': {
+          const r = cmd.radius||1; const a = cmd.axis||[1,0,0]; const l = Math.hypot(...a)||1;
+          mesh = new THREE.Mesh(primitiveGeometry.cylinder(r,l), mat);
+          const dir = new THREE.Vector3(...a).normalize();
+          mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+          break;
+        }
+        case 'arrow': {
+          const a = cmd.axis||[1,0,0]; const l = Math.hypot(...a)||1; const sw = cmd.shaftwidth||0.1;
+          const group = new THREE.Group();
+          const shaft = new THREE.Mesh(new THREE.CylinderGeometry(sw/2,sw/2,l*0.8,8), mat);
+          shaft.position.y = l*0.4; group.add(shaft);
+          const head = new THREE.Mesh(new THREE.ConeGeometry(sw*1.5,l*0.2,8), mat);
+          head.position.y = l*0.9; group.add(head);
+          const dir = new THREE.Vector3(...a).normalize();
+          group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+          mesh = group; break;
+        }
+        case 'cone': {
+          const r = cmd.radius||1; const a = cmd.axis||[1,0,0]; const l = Math.hypot(...a)||1;
+          mesh = new THREE.Mesh(primitiveGeometry.cone(r,l), mat);
+          const dir = new THREE.Vector3(...a).normalize();
+          mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+          break;
+        }
+        case 'ring': mesh = new THREE.Mesh(new THREE.TorusGeometry(cmd.radius||1, cmd.thickness||0.1, 16, 48), mat); mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), new THREE.Vector3(...(cmd.axis||[1,0,0])).normalize()); break;
+        case 'pyramid': {
+          mesh = new THREE.Mesh(primitiveGeometry.pyramid(cmd.size || [1,1,1]), mat);
+          break;
+        }
+        case 'ellipsoid': {
+          const sz = cmd.size || [1,1,1];
+          mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 16), mat);
+          mesh.scale.set(sz[0], sz[1], sz[2]);
+          break;
+        }
+        case 'helix': {
+          const r = cmd.radius||1; const a = cmd.axis||[1,0,0]; const len = cmd.length ?? 1;
+          const coils = cmd.coils||5; const seg = Math.max(64, coils*32);
+          const positions = [];
+          for (let i=0;i<=seg;i++){const t=i/seg;const ang=t*coils*Math.PI*2;positions.push(t*len, r*Math.cos(ang), r*Math.sin(ang));}
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.Float32BufferAttribute(positions,3));
+          mesh = new THREE.Line(g, new THREE.LineBasicMaterial({color: baseColor, transparent:(cmd.opacity??1)<1, opacity:cmd.opacity??1}));
+          mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0), new THREE.Vector3(...a).normalize());
+          break;
+        }
+        case 'label': {
+          // 캔버스 텍스처 → Sprite (항상 카메라를 향함)
+          const text = String(cmd.text||''); const fontPx = cmd.height||16;
+          const measure = document.createElement('canvas').getContext('2d');
+          measure.font = (fontPx*2) + 'px sans-serif';
+          const tw = Math.max(32, Math.ceil(measure.measureText(text||' ').width)+12);
+          const th = Math.max(32, Math.ceil(fontPx*2*1.4)+12);
+          const cv = document.createElement('canvas'); cv.width=tw; cv.height=th;
+          const ctx = cv.getContext('2d');
+          if (cmd.background) { const c=cmd.background; ctx.fillStyle = 'rgba('+Math.round(c[0]*255)+','+Math.round(c[1]*255)+','+Math.round(c[2]*255)+',0.85)'; ctx.fillRect(0,0,tw,th); }
+          const c = cmd.color||[1,1,1];
+          ctx.fillStyle = 'rgb('+Math.round(c[0]*255)+','+Math.round(c[1]*255)+','+Math.round(c[2]*255)+')';
+          ctx.font = (fontPx*2) + 'px sans-serif';
+          ctx.textBaseline='middle'; ctx.textAlign='center';
+          ctx.fillText(text, tw/2, th/2);
+          const tex = new THREE.CanvasTexture(cv);
+          const sm = new THREE.SpriteMaterial({map:tex, transparent:true, opacity:cmd.opacity??1, depthTest:false, depthWrite:false});
+          mesh = new THREE.Sprite(sm);
+          const ws = fontPx/32;
+          mesh.scale.set((tw/th)*ws, ws, 1);
+          break;
+        }
+        case 'curve': {
+          const pts = (cmd.points||[]).flat();
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+          mesh = new THREE.Line(g, new THREE.LineBasicMaterial({color: baseColor, transparent:(cmd.opacity??1)<1, opacity:cmd.opacity??1}));
+          curves.set(cmd.id, {line: mesh, positions: pts.slice()});
+          break;
+        }
+        case 'points': {
+          const pts = (cmd.points||[]).flat();
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+          mesh = new THREE.Points(g, new THREE.PointsMaterial({color: baseColor, size:(cmd.size??5)*0.02, sizeAttenuation:true, transparent:(cmd.opacity??1)<1, opacity:cmd.opacity??1}));
+          curves.set(cmd.id, {line: mesh, positions: pts.slice()});
+          break;
+        }
+        case 'triangle':
+        case 'quad': {
+          const verts = cmd.vertices || [];
+          const positions = []; const colors = [];
+          const indices = cmd.type === 'triangle' ? [0,1,2] : [0,1,2,0,2,3];
+          for (const i of indices) {
+            const v = verts[i] || {pos:[0,0,0], color:[1,1,1]};
+            positions.push(v.pos[0], v.pos[1], v.pos[2]);
+            colors.push(v.color[0], v.color[1], v.color[2]);
+          }
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.Float32BufferAttribute(positions,3));
+          g.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
+          g.computeVertexNormals();
+          mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({vertexColors:true, side:THREE.DoubleSide, roughness:0.5, metalness:0.05}));
+          break;
+        }
+        case 'extrusion': {
+          const path = cmd.path || []; const shape = cmd.shape || [];
+          if (path.length >= 2 && shape.length >= 3) {
+            const sh = new THREE.Shape();
+            sh.moveTo(shape[0][0], shape[0][1]);
+            for (let i=1;i<shape.length;i++) sh.lineTo(shape[i][0], shape[i][1]);
+            sh.closePath();
+            const cv = new THREE.CatmullRomCurve3(path.map(p => new THREE.Vector3(p[0], p[1], p[2]??0)));
+            mesh = new THREE.Mesh(new THREE.ExtrudeGeometry(sh, {steps: Math.max(path.length*4,12), extrudePath: cv}), mat);
+          } else {
+            mesh = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), mat);
+          }
+          break;
+        }
+        case 'local_light': {
+          const lt = new THREE.PointLight(toColor(cmd.color||[1,1,1]), cmd.intensity??1, 50);
+          if(cmd.pos) lt.position.set(...cmd.pos); scene.add(lt); meshes.set(cmd.id, lt); return;
+        }
+        case 'distant_light': {
+          const lt = new THREE.DirectionalLight(toColor(cmd.color||[1,1,1]), cmd.intensity??1);
+          const d=cmd.direction||[0,-1,0]; lt.position.set(-d[0]*10,-d[1]*10,-d[2]*10);
+          scene.add(lt); meshes.set(cmd.id, lt); return;
+        }
+        default: return;
+      }
+      if (cmd.pos) mesh.position.set(cmd.pos[0], cmd.pos[1], cmd.pos[2]);
+      mesh.visible = cmd.visible !== false;
+      mesh.userData = Object.assign(mesh.userData || {}, { vpType: cmd.type });
+      if (cmd.type === 'arrow') { const a0 = cmd.axis || [1,0,0]; mesh.userData.arrowLen = Math.hypot(...a0) || 1; mesh.userData.shaftwidth = cmd.shaftwidth || 0.1; }
+      if (cmd.type === 'helix') { mesh.userData.helixRadius = cmd.radius || 1; mesh.userData.helixCoils = cmd.coils || 5; }
+      if (['box','pyramid','ellipsoid'].includes(cmd.type) && (cmd.axis || cmd.up)) { mesh.userData.boxAxis = cmd.axis || [1,0,0]; mesh.userData.boxUp = cmd.up || [0,1,0]; applyBoxOrientation(mesh); }
+      scene.add(mesh);
+      meshes.set(cmd.id, mesh);
+      if (cmd.make_trail) createTrail(cmd);
+    } else if (cmd.action === 'update') {
+      const m = meshes.get(cmd.id); if (!m) return;
+      if (cmd.pos) m.position.set(cmd.pos[0], cmd.pos[1], cmd.pos[2]);
+      if (cmd.color) {
+        if (m.isLight) m.color = toColor(cmd.color);
+        else if (m.userData?.vpType === 'compound') compoundAppearance.apply(m, {color:cmd.color});
+        else if (m.isGroup) m.traverse(c => { if(c.material) updateMaterialColor(c.material, toColor(cmd.color)); });
+        else if (m.material) updateMaterialColor(m.material, toColor(cmd.color));
+      }
+      if (cmd.intensity !== undefined && m.isLight) m.intensity = cmd.intensity;
+      if (cmd.direction !== undefined && m.isDirectionalLight) m.position.set(-cmd.direction[0]*10,-cmd.direction[1]*10,-cmd.direction[2]*10);
+      if (cmd.visible !== undefined) m.visible = cmd.visible;
+      if (cmd.opacity !== undefined) {
+        if(m.userData?.vpType==='compound') compoundAppearance.apply(m,{opacity:cmd.opacity});
+        else if (m.isGroup) m.traverse(c => { if(c.material)compoundAppearance.setOpacity(c.material,cmd.opacity); });
+        else if (m.material) compoundAppearance.setOpacity(m.material,cmd.opacity);
+      }
+      if(cmd.shininess!==undefined && m.userData?.vpType==='compound')compoundAppearance.apply(m,{shininess:cmd.shininess});
+      if (cmd.emissive !== undefined && !m.isLight) {
+        if(m.userData?.vpType==='compound') compoundAppearance.apply(m,{emissive:cmd.emissive});
+        else if (m.isGroup) m.traverse(c => { if(c.material) setMaterialEmissive(c.material, cmd.emissive); });
+        else if (m.material) setMaterialEmissive(m.material, cmd.emissive);
+      }
+      if (cmd.radius !== undefined && m.geometry) {
+        let ng;
+        if(m.geometry.type==='SphereGeometry') ng=new THREE.SphereGeometry(cmd.radius,32,16);
+        else if(m.geometry.type==='ConeGeometry'&&m.userData?.vpType!=='pyramid') ng=primitiveGeometry.cone(cmd.radius,m.geometry.parameters?.height||1);
+        else if(m.geometry.type==='CylinderGeometry') ng=primitiveGeometry.cylinder(cmd.radius,m.geometry.parameters?.height||1);
+        else if(m.geometry.type==='TorusGeometry') ng=new THREE.TorusGeometry(cmd.radius,m.geometry.parameters?.tube||0.1,16,48);
+        if(ng){m.geometry.dispose();m.geometry=ng;}
+      }
+      if (cmd.size !== undefined && m.geometry) {
+        const s=cmd.size;
+        if(m.userData?.vpType==='pyramid'){m.geometry.dispose();m.geometry=primitiveGeometry.pyramid(s);}
+        else if (m.geometry.type==='SphereGeometry') { m.scale.set(s[0],s[1],s[2]); } // ellipsoid: sphere+scale — 상자로 바꾸지 않음
+        else { const ng=new THREE.BoxGeometry(s[0],s[1],s[2]); m.geometry.dispose(); m.geometry=ng; }
+      }
+      if (cmd.thickness !== undefined && m.geometry?.type==='TorusGeometry') { const r=m.geometry.parameters?.radius||1; const ng=new THREE.TorusGeometry(r,cmd.thickness,16,48); m.geometry.dispose(); m.geometry=ng; }
+      if (cmd.axis !== undefined || cmd.up !== undefined) {
+        const vpType = m.userData?.vpType;
+        if (['box','pyramid','ellipsoid','compound'].includes(vpType)) {
+          if (cmd.axis) m.userData.boxAxis = cmd.axis;
+          if (cmd.up) m.userData.boxUp = cmd.up;
+          applyBoxOrientation(m);
+        } else if (cmd.axis !== undefined) {
+          const len = Math.hypot(...cmd.axis) || 1;
+          const dir = new THREE.Vector3(...cmd.axis).normalize();
+          if (vpType === 'cylinder' && m.geometry) { const r=m.geometry.parameters?.radiusTop??1; m.geometry.dispose(); m.geometry=primitiveGeometry.cylinder(r,len); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir); }
+          else if (vpType === 'cone' && m.geometry) { const r=m.geometry.parameters?.radius??1; m.geometry.dispose(); m.geometry=primitiveGeometry.cone(r,len); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir); }
+          else if (vpType === 'ring') { m.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),dir); }
+          else if (vpType === 'arrow') { m.userData.arrowLen=len; rebuildArrow(m, len, m.userData.shaftwidth||0.1); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir); }
+          else if (vpType === 'helix') { rebuildHelixLen(m, len); m.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),dir); }
+          else { m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir); }
+        }
+      }
+    } else if (cmd.action === 'scene') {
+      if (cmd.property === 'background') scene.background = toColor(cmd.value);
+      if (cmd.property === 'range') cameraSystem.setExplicitRange(cmd.value);
+      if (cmd.property === 'center') cameraSystem.setExplicitCenter(...cmd.value);
+      if (cmd.property === 'forward') cameraSystem.setForward(...cmd.value);
+      if (cmd.property === 'up') cameraSystem.setUp(...cmd.value);
+      if (cmd.property === 'fov') cameraSystem.setFov(cmd.value);
+      if (cmd.property === 'autoscale') cameraSystem.setAutoscale(cmd.value);
+      if (cmd.property === 'camera_pos') cameraSystem.setCameraPos(...cmd.value);
+      if (cmd.property === 'camera_axis') cameraSystem.setCameraAxis(...cmd.value);
+      if (cmd.property === 'camera_follow') cameraSystem.followObject(cmd.value ? meshes.get(cmd.value) : null);
+    } else if (cmd.action === 'trail_update') {
+      updateTrail(cmd);
+    } else if (cmd.action === 'trail_clear') {
+      const t = trails.get(cmd.id);
+      if (t) { t.positions.length = 0; t.line.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3)); t.line.geometry.computeBoundingSphere(); }
+    } else if (cmd.action === 'trail_attach') {
+      if (!trails.has(cmd.id) && meshes.has(cmd.id)) createTrail({id:cmd.id, pos: cmd.pos||[0,0,0], color:[1,1,1], trail_color: cmd.trail_color});
+    } else if (cmd.action === 'curve_append') {
+      const c = curves.get(cmd.id);
+      if (c) { c.positions.push(cmd.pos[0], cmd.pos[1], cmd.pos[2]); c.line.geometry.setAttribute('position', new THREE.Float32BufferAttribute(c.positions, 3)); c.line.geometry.computeBoundingSphere(); }
+    } else if (cmd.action === 'curve_clear') {
+      const c = curves.get(cmd.id);
+      if (c) { c.positions.length = 0; c.line.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3)); c.line.geometry.computeBoundingSphere(); }
+    } else if (cmd.action === 'compound') {
+      const group = new THREE.Group();
+      for (const subId of (cmd.sub_ids||[])) {
+        const subMesh = meshes.get(subId);
+        if (subMesh) { subMesh.updateWorldMatrix(true,true);const world=subMesh.matrixWorld.clone();subMesh.removeFromParent();world.decompose(subMesh.position,subMesh.quaternion,subMesh.scale);group.add(subMesh); }
+      }
+      const center=cmd.center?new THREE.Vector3(...cmd.center):new THREE.Box3().setFromObject(group).getCenter(new THREE.Vector3());
+      group.children.forEach(child=>child.position.sub(center));
+      group.position.copy(cmd.pos?new THREE.Vector3(...cmd.pos):center);
+      group.userData={vpType:'compound',boxAxis:cmd.axis||[1,0,0],boxUp:cmd.up||[0,1,0]};
+      applyBoxOrientation(group);
+      compoundAppearance.init(group);
+      compoundAppearance.apply(group,cmd);
+      group.visible = cmd.visible !== false;
+      scene.add(group);
+      meshes.set(cmd.id, group);
+      if (cmd.make_trail) createTrail(cmd);
+    } else if (cmd.action === 'sound') {
+      processSoundCmd(cmd);
+    } else if (cmd.action === 'chart') {
+      renderChart(cmd);
+    }
+  }
+
+  // === Pyodide 직접 로드 + 실행 ===
+  const progress = document.getElementById('progress');
+  const loading = document.getElementById('loading');
+
+  async function run() {
+    progress.style.width = '20%';
+    const pyodideCdns = [
+      'https://cdn.jsdelivr.net/pyodide/v0.27.0/full/',
+      'https://unpkg.com/pyodide@0.27.0/',
+    ];
+    let pyodideIndexUrl = null;
+    let lastLoadError = null;
+    for (const cdn of pyodideCdns) {
+      const pyodideScript = document.createElement('script');
+      pyodideScript.src = cdn + 'pyodide.js';
+      document.head.appendChild(pyodideScript);
+      try {
+        await new Promise((resolve, reject) => {
+          pyodideScript.onload = resolve;
+          pyodideScript.onerror = () => reject(new Error(cdn + 'pyodide.js 로드 실패'));
+        });
+        pyodideIndexUrl = cdn;
+        break;
+      } catch (err) {
+        lastLoadError = err;
+        pyodideScript.remove();
+      }
+    }
+    if (!pyodideIndexUrl) throw lastLoadError || new Error('Pyodide CDN 로드 실패');
+    progress.style.width = '50%';
+
+    const pyodide = await loadPyodide({ indexURL: pyodideIndexUrl });
+    progress.style.width = '80%';
+
+    // micropip으로 필요한 패키지 자동 설치
+    const code = decodeURIComponent(escape(atob('ZnJvbSB2cHl0aG9uIGltcG9ydCAqCmltcG9ydCBtYXRoCgojIOuPhO2UjOufrCDtmqjqs7w6IOydjOybkOydtCDri6TqsIDsmKTrqbQg7YyM7J6l7J20IOynp+yVhOyguCDsnYzsnbQg64aS7JWE7KeA6rOgLAojIOupgOyWtOyngOuptCDtjIzsnqXsnbQg6ri47Ja07KC4IOuCruyVhOynkeuLiOuLpC4KIyDqtazquInssKgg7IKs7J2066CM7J20IOyngOuCmOqwiCDrlYwg7J2M7J20IOuzgO2VmOuKlCDsnbTsnKAhCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACgpzY2VuZS5iYWNrZ3JvdW5kID0gdmVjdG9yKDAuMDUsIDAuMDUsIDAuMSkKCiMg64+E66GcCmJveChwb3M9dmVjdG9yKDAsIC0xLCAwKSwgc2l6ZT12ZWN0b3IoMjAsIDAuMSwgMSksCiAgICBjb2xvcj1jb2xvci5ncmF5LCBvcGFjaXR5PTAuNSkKIyDqtIDsuKHsnpAo7IKs656MKQpzcGhlcmUocG9zPXZlY3RvcigwLCAwLCAwKSwgcmFkaXVzPTAuMiwKICAgICAgIGNvbG9yPWNvbG9yLnBlYWNoLCBlbWlzc2l2ZT1UcnVlKQpsYWJlbChwb3M9dmVjdG9yKDAsIDAuNiwgMCksIHRleHQ9J+q0gOy4oeyekCcsCiAgICAgIGNvbG9yPWNvbG9yLndoaXRlLCBoZWlnaHQ9MTIpCgojIOyekOuPmeywqApjYXIgPSBib3gocG9zPXZlY3RvcigtNywgLTAuMywgMCksIHNpemU9dmVjdG9yKDAuOCwgMC40LCAwLjQpLAogICAgICAgICAgY29sb3I9Y29sb3IucmVkLCBlbWlzc2l2ZT1UcnVlLCBtYWtlX3RyYWlsPVRydWUsCiAgICAgICAgICB0cmFpbF9jb2xvcj1jb2xvci5yZWQpCgojIOyekOuPmeywqCDrs7jrnpgg7J2MCmJhc2VfZnJlcSA9IDQ0MCAgIyBBNAoKbGFiZWwocG9zPXZlY3RvcigwLCAyLjUsIDApLAogICAgICB0ZXh0PSLsnpDrj5nssKjqsIAg7KKM4oaS7Jqw66GcIOyngOuCmOqwkeuLiOuLpC4g7J2MIOuzgO2ZlOyXkCDqt4Ag6riw7Jq47Jes67O07IS47JqUISIsCiAgICAgIGNvbG9yPWNvbG9yLndoaXRlLCBoZWlnaHQ9MTQpCgojIOyekOuPmeywqOqwgCDsoozihpLsmrDroZwg7KeA64KY6rCQICgz7ZqMIOuwmOuztSkKZm9yIGN5Y2xlIGluIHJhbmdlKDMpOgogICAgY2FyLnBvcyA9IHZlY3RvcigtNywgLTAuMywgMCkKICAgIGNhci5jbGVhcl90cmFpbCgpCiAgICB3aGlsZSBjYXIucG9zLnggPCA3OgogICAgICAgIGNhci5wb3MgPSBjYXIucG9zICsgdmVjdG9yKDAuMTUsIDAsIDApCiAgICAgICAgIyDqsbDrpqwg6riw67CYIOuPhO2UjOufrCDsi5zrrqzroIjsnbTshZggKOuLqOyInO2ZlCkKICAgICAgICBkeCA9IDAgLSBjYXIucG9zLnggICMg6rSA7Lih7J6QKDAp7JeQ7IScIOyekOuPmeywqOq5jOyngAogICAgICAgIHNwZWVkID0gMC4xNSAgIyDsnpDrj5nssKgg7IaN64+EKOyehOydmCkKICAgICAgICAjIOuLpOqwgOyYpOuptChkeD4wKSDso7ztjIzsiJjihpEsIOupgOyWtOyngOuptCDso7ztjIzsiJjihpMKICAgICAgICBpZiBkeCA+IDAuMTogICMg64uk6rCA7Jik64qUIOykkQogICAgICAgICAgICBmcmVxID0gYmFzZV9mcmVxICogMS4xNQogICAgICAgIGVsaWYgZHggPCAtMC4xOiAgIyDrqYDslrTsp4DripQg7KSRCiAgICAgICAgICAgIGZyZXEgPSBiYXNlX2ZyZXEgKiAwLjg3CiAgICAgICAgZWxzZTogICMg7JiG7J2EIOyngOuCqAogICAgICAgICAgICBmcmVxID0gYmFzZV9mcmVxCiAgICAgICAgc291bmQoZnJlcSwgMC4xMiwgJ3Nhd3Rvb3RoJywgMC4xOCkKICAgICAgICBzbGVlcCgwLjA1KQogICAgc2xlZXAoMC4zKQoKcHJpbnQoJ+uPhO2UjOufrCDtmqjqs7w6IOuLpOqwgOyYrCDrlYwg7JW9ICsxNSUsIOupgOyWtOyniCDrlYwg7JW9IC0xMyUg7KO87YyM7IiYIOuzgO2ZlCcpCg==')));
+    const needsPackages = [];
+    if (/import\s+numpy|from\s+numpy/.test(code)) needsPackages.push('numpy');
+    if (/import\s+matplotlib|from\s+matplotlib/.test(code)) needsPackages.push('matplotlib');
+    if (/import\s+pandas|from\s+pandas/.test(code)) needsPackages.push('pandas');
+    if (/import\s+scipy|from\s+scipy/.test(code)) needsPackages.push('scipy');
+    if (/import\s+sympy|from\s+sympy/.test(code)) needsPackages.push('sympy');
+
+    if (needsPackages.length > 0) {
+      await pyodide.loadPackage('micropip');
+      const micropip = pyodide.pyimport('micropip');
+      for (const pkg of needsPackages) {
+        try { await micropip.install(pkg); } catch(e) { console.warn('패키지 설치 실패:', pkg, e); }
+      }
+    }
+
+    pyodide.globals.set('_js_camera_state', () => JSON.stringify(cameraSystem.getState()));
+
+    // VPython API 정의
+    await pyodide.runPythonAsync(vpythonApi);
+
+    // 'vpython' 모듈로 등록 — from vpython import * 가 동작하도록
+    await pyodide.runPythonAsync(`
+import sys, types
+vpython_module = types.ModuleType('vpython')
+_vpython_names = [
+    'vector', 'vec', 'color', '색상', 'textures', '텍스처',
+    'sphere', 'box', 'cylinder', 'arrow', 'cone', 'ring', 'compound',
+    'pyramid', 'ellipsoid', 'helix', 'label', 'text', 'curve', 'points', 'frame',
+    'vertex', 'triangle', 'quad', 'extrusion',
+    'scene', 'keysdown', 'canvas', 'group', 'shapes', 'paths', 'wtext', 'attach_trail', 'attach_light',
+    'local_light', 'distant_light',
+    'rate', 'sleep', 'scene_background',
+    'mag', 'mag2', 'hat', 'dot', 'cross', 'norm',
+    'play_sound', 'play_note', 'play_note_and_wait', 'play_chord', 'play_sequence',
+    'play_sfx', 'start_bgm', 'stop_bgm', 'note',
+    'sound', 'sfx', 'bgm', 'chord',
+    '소리', '음표', '효과음', '배경음악', '배경음악정지', '화음',
+    'NamedList',
+    '음계', 'scale', '높은음계', 'high_scale', '낮은음계', 'low_scale',
+    '무지개', 'rainbow', '따뜻한색', 'warm_colors', '차가운색', 'cool_colors',
+    '기본색', 'basic_colors', '파스텔', 'pastel_colors',
+    'play_instrument', '악기',
+    'scatter3d', 'surface3d', 'line3d', 'bar3d',
+    '산점도', '표면그래프', '선그래프', '막대그래프',
+]
+_vpython_names += [n for n in dir(math) if not n.startswith('_')]
+for _name in _vpython_names:
+    if _name in dir():
+        setattr(vpython_module, _name, eval(_name))
+vpython_module.__all__ = [n for n in _vpython_names if hasattr(vpython_module, n)]
+sys.modules['vpython'] = vpython_module
+`);
+    progress.style.width = '90%';
+
+    // postMessage를 processBatch로 연결
+    pyodide.globals.set('_js_compound_bounds', (idsJson) => {
+      const bounds=new THREE.Box3();
+      for(const id of JSON.parse(idsJson)){const object=meshes.get(id);if(object){object.updateWorldMatrix(true,true);bounds.union(new THREE.Box3().setFromObject(object,object.userData?.vpType==='pyramid'));}}
+      const center=bounds.isEmpty()?new THREE.Vector3():bounds.getCenter(new THREE.Vector3());
+      const size=bounds.isEmpty()?new THREE.Vector3(1,1,1):bounds.getSize(new THREE.Vector3());
+      return JSON.stringify({center:center.toArray(),size:size.toArray()});
+    });
+    pyodide.globals.set('_js_process_batch', (jsonStr) => {
+      const msg = JSON.parse(jsonStr);
+      if (msg.type === 'batch' && msg.commands) {
+        msg.commands.forEach(processCmd);
+      }
+    });
+
+    // stdout 리디렉션 (콘솔에 표시)
+    pyodide.globals.set('_js_log', (text) => { if(text && text.trim()) logToConsole(text); });
+    await pyodide.runPythonAsync(`
+import sys, io
+
+class _ConsoleWriter:
+    def __init__(self): self._buf = ''
+    def write(self, text):
+        self._buf += text
+        while '\\n' in self._buf:
+            line, self._buf = self._buf.split('\\n', 1)
+            _js_log(line)
+    def flush(self):
+        if self._buf:
+            _js_log(self._buf)
+            self._buf = ''
+
+sys.stdout = _ConsoleWriter()
+sys.stderr = _ConsoleWriter()
+`);
+
+    await pyodide.runPythonAsync(`
+import json
+def _send_commands():
+    global _command_buffer
+    if _command_buffer:
+        _js_process_batch(json.dumps({"type": "batch", "commands": _command_buffer}))
+        _command_buffer = []
+`);
+
+    loading.classList.add('done');
+
+    // 학생 코드 실행 — vpython 모듈이 sys.modules에 등록돼 있으므로 import 줄을 그대로 둔다 (줄 번호도 유지된다)
+    const filtered = code;
+
+    // 편집기와 같은 변환기(student-code-transform.py)로 rate()·sleep()이 든 함수를 async def로 바꾸고
+    // 호출에 await를 붙인 뒤, 함수로 감싸지 않고 모듈 수준(최상위 await)에서 실행한다. global 선언이 동작한다.
+    const transformSrc = decodeURIComponent(escape(atob('IiIiClZQeUxhYiDtlZnsg50g7L2U65OcIOuzgO2ZmOq4sCDigJQgR2xvd1NjcmlwdOyZgCDqsJnsnYAg7Iuk7ZaJIOydmOuvuOulvCDrp4zrk6Dri6QuCgrruIzrnbzsmrDsoIDsl5DripQg67iU66Gc7YK5IOuMgOq4sOqwgCDsl4bsnLzrr4DroZwgcmF0ZSgpwrdzbGVlcCgpwrdzY2VuZS5wYXVzZSgpwrdzY2VuZS53YWl0Zm9yKCnCt2lucHV0KCnCt+yVheq4sCgp64qUCuy9lOujqO2LtOydtOuLpC4g7ZWZ7IOd7J2AIEdsb3dTY3JpcHTsspjrn7wg7Y+J67KU7ZWcIO2VqOyImOuhnCDsk7Drr4DroZwsIOyLpO2WiSDsoITsl5Ag7J20IOuqqOuTiOydtCDsvZTrk5zrpbwg64uk7J2M6rO8IOqwmeydtCDrsJTqvrzri6QuCgoxLiDsnIQg7Zi47LacKOuMgOq4sCDtlajsiJgp7J20IOuTpOyWtCDsnojripQgZGVmKOykkeyyqSDtlajsiJjCt+2BtOuemOyKpCDrqZTshJzrk5wg7Y+s7ZWoKeulvCBhc3luYyBkZWbroZwg67CU6r6864ukLgoyLiDqt7jroIfqsowg67CU64CQIO2VqOyImOulvCDrtoDrpbTripQg7J6Q66as7JeQ64+EIGF3YWl066W8IOu2meyduOuLpC4g7Zi47LacIOq3uOuemO2UhOulvCDrlLDrnbwg67OA7ZWY7KeAIOyViuydhCDrlYzquYzsp4Ag67CY67O17ZWc64ukLgozLiDrqqjrk4gg7IiY7KSA7J2YIO2YuOy2nOyXkOuKlCDstZzsg4HsnIQgYXdhaXTrpbwg67aZ7J2464ukKFB5Q0ZfQUxMT1dfVE9QX0xFVkVMX0FXQUlUKS4g7L2U65Oc66W8IO2VqOyImOuhnCDqsJDsi7jsp4AKICAg7JWK7Jy866+A66GcIOuqqOuTiCDsoITsl63snbQg7KeE7KecIOyghOyXreydtOqzoCBnbG9iYWwg7ISg7Ja47J20IOuPmeyeke2VnOuLpC4KCu2YuOy2nOydgCDshLgg6rCA7KeA66GcIOuCmOuIiOuLpC4KLSDtmZXsoJUg64yA6riwOiDsnbTrpoTsnbQg7Iqk7L2U7ZSEIOyCrOyKrOyXkOyEnCDrjIDquLAg7ZWo7IiYKOuYkOuKlCBhc3luY+uhnCDrsJTrgJAgZGVmKeuhnCDtkoDrpqzripQg7Zi47LacIOKGkiBgYXdhaXQgZigpYC4KLSDtmZXsoJUg64+Z6riwOiBkZWbCt2NsYXNzwrdpbXBvcnTCt2xhbWJkYSDrk7HsnLzroZwg7ZKA66as6rOgIOuMgOq4sOqwgCDslYTri4wg7Zi47LacIOKGkiDqt7jrjIDroZwuCi0g66+47ZmV7KCVOiDrp6TqsJzrs4DsiJjCt+uMgOyehcK37LKo7J6QwrftmLjstpwg6rKw6rO866W8IOu2gOultOqxsOuCmCwg7IiY7Iug7J6Q66W8IOuqqOultOuKlCDrqZTshJzrk5wg7J2066aE7J20IGFzeW5jIOuplOyEnOuTnCDsnbTrpoTqs7wKICDqsrnsuZjripQg7Zi47LacIOKGkiBgYXdhaXQgX192cHlsYWJfcnRfXy5tYXliZV9hd2FpdChmKCkpYC4g7L2U66Oo7Yu07J2066m0IOq4sOuLpOumrOqzoCDsnbzrsJgg6rCS7J2066m0IOq3uOuMgOuhnCDrj4zroKTso7zrr4DroZwKICBgZm9yIGIgaW4gYmFsbHM6IGIudXBkYXRlKClgwrdgZm4oKWDCt2BhY3Rpb25zW2tdKClg6rCAIOuqqOuRkCDrj5nsnpHtlZjqs6AsIOqwmeydgCDsnbTrpoTsnZgg64uk66W4IOqwneyytChgcmFuZG9tLmNob2ljZWAp64+ECiAg6rmo7KeA7KeAIOyViuuKlOuLpC4KCuusuOyekOyXtMK37KO87ISdIOyViOydmCDqsIDsp5wg7Zi47Lac7J2AIGFzdOqwgCDtjIzsi7Eg64uo6rOE7JeQ7IScIOqxuOufrCDrgrjri6QuIOykhCDrsojtmLjripQgYXN0IOuFuOuTnOqwgCDqt7jrjIDroZwg6rCW6rOgIOyeiOycvOuvgOuhnArrs4DtmZjrkJwg7L2U65OcIOqwneyytOydmCDtirjroIjsnbTsiqTrsLEg7KSEIOuyiO2YuOqwgCDtlZnsg53snbQg7JO0IOykhCDrsojtmLjsmYAg6rCZ64ukLgoKR2xvd1NjcmlwdChsaWIvY29tcGlsaW5nL0dTY29tcGlsZXIuanMp64qUIHJhdGXCt3NsZWVwwrdnZXRfbGlicmFyecK3cmVhZF9sb2NhbF9maWxl6rO8IHNjZW5lLnBhdXNlwrcKc2NlbmUud2FpdGZvcsK3c2NlbmUuY2FwdHVyZeulvCDrjIDquLAg7ZWo7IiY66GcIOuRkOqzoCDsgqzsmqnsnpAg7ZWo7IiYIOyghOu2gOulvCBhc3luY+uhnCDrsJTqvrzri6QuIOyXrOq4sOyEnOuKlCDrjIDquLAK7ZWo7IiY66W8IOyLpOygnOuhnCjsp4HsoJHCt+qwhOygkeycvOuhnCkg67aA66W064qUIO2VqOyImOunjCDrsJTqvrzri6QuIOq3uOuemOyVvCDtj4nrspTtlZwg7ZWo7IiY7J2YIOuwmO2ZmOqwksK37IaN64+E6rCAIOq3uOuMgOuhnCDsnKDsp4DrkJzri6QuCgrsnbQg7YyM7J287J2AIFB5b2RpZGUoQ1B5dGhvbiAzLjEyKeyZgCDtlZjrhKTsiqQoQ1B5dGhvbiAzLjExIOydtOyDgSkg7JaR7Kq97JeQ7IScIOyLpO2WieuQnOuLpC4ganMg66qo65OI7J2EIOyTsOyngCDslYrripTri6QuCuyLpO2Wieq4sCh2cHl0aG9uLWFwaS5weeydmCBfdnB5bGFiX3J1binripQg7J20IOuqqOuTiCDqsJ3ssrTrpbwg7ZWZ7IOdIOuEpOyehOyKpO2OmOydtOyKpOyXkCBgX192cHlsYWJfcnRfX2DroZwg64Sj64qU64ukLgoiIiIKaW1wb3J0IGFzdAppbXBvcnQgaW5zcGVjdAoKIyDrsJTroZwg67aA66W064qUIOy9lOujqO2LtCDsnbTrpoQgKHZweXRob24tYXBpLnB57JeQ7IScIGFzeW5jIGRlZuuhnCDsoJXsnZgpCkJMT0NLSU5HX05BTUVTID0gZnJvemVuc2V0KHsncmF0ZScsICdzbGVlcCcsICfslYXquLAnLCAn7J2M7ZGcJywgJ3BsYXlfbm90ZV9hbmRfd2FpdCcsICftmZTsnYwnLCAnaW5wdXQnfSkKIyBzY2VuZS487J2066aEPiguLi4pIO2Yle2DnOydmCDsvZTro6jti7Qg66mU7ISc65OcClNDRU5FX0JMT0NLSU5HX0FUVFJTID0gZnJvemVuc2V0KHsncGF1c2UnLCAnd2FpdGZvcid9KQojIGBpbXBvcnQgdnB5dGhvbiBhcyB2cGAg65KkIHZwLnJhdGUoKcK3dnAuc2NlbmUucGF1c2UoKeulvCDsnbjsi53tlZjquLAg7JyE7ZWcIOuqqOuTiCDsnbTrpoQKVlBZVEhPTl9NT0RVTEVTID0gZnJvemVuc2V0KHsndnB5dGhvbid9KQojIOuzgO2ZmOuQnCDsvZTrk5zqsIAg65+w7YOA7J6EIOuztOyhsOulvCDrtoDrpbwg65WMIOyTsOuKlCDsnbTrpoQgKO2VmeyDnSDrhKTsnoTsiqTtjpjsnbTsiqTsl5Ag7Iuk7ZaJ6riw6rCAIOuEo+uKlOuLpCkKUlVOVElNRV9OQU1FID0gJ19fdnB5bGFiX3J0X18nCgpfRlVOQ19OT0RFUyA9IChhc3QuRnVuY3Rpb25EZWYsIGFzdC5Bc3luY0Z1bmN0aW9uRGVmKQpfU0NPUEVfTk9ERVMgPSAoYXN0LkZ1bmN0aW9uRGVmLCBhc3QuQXN5bmNGdW5jdGlvbkRlZiwgYXN0LkxhbWJkYSwgYXN0LkNsYXNzRGVmKQpfQ09NUFJFSEVOU0lPTlMgPSAoYXN0Lkxpc3RDb21wLCBhc3QuU2V0Q29tcCwgYXN0LkRpY3RDb21wLCBhc3QuR2VuZXJhdG9yRXhwKQoKQ0VSVEFJTl9BU1lOQyA9ICdhc3luYycKQ0VSVEFJTl9TWU5DID0gJ3N5bmMnClVOQ0VSVEFJTiA9ICdtYXliZScKCgphc3luYyBkZWYgbWF5YmVfYXdhaXQodmFsdWUpOgogICAgIiIi66+47ZmV7KCVIO2YuOy2nOydmCDqsrDqs7zqsIAg7L2U66Oo7Yu0KOuYkOuKlCBGdXR1cmXCt1Rhc2sg6rCZ7J2AIGF3YWl0YWJsZSnsnbTrqbQg6riw64uk66as6rOgLCDslYTri4jrqbQg6re464yA66GcIOuPjOugpOykgOuLpC4iIiIKICAgIGlmIGluc3BlY3QuaXNhc3luY2dlbih2YWx1ZSk6CiAgICAgICAgcmFpc2UgVHlwZUVycm9yKCJyYXRlKCnCt3NsZWVwKCkg6rCZ7J2AIOuMgOq4sCDtlajsiJjqsIAg65OgIOygnOuEiOugiOydtO2EsOuKlCDsk7gg7IiYIOyXhuyKteuLiOuLpC4gZm9yIOusuOydtOuCmCDrpqzsiqTtirjroZwg67CU6r647IS47JqULiIpCiAgICBpZiBpbnNwZWN0LmlzYXdhaXRhYmxlKHZhbHVlKToKICAgICAgICByZXR1cm4gYXdhaXQgdmFsdWUKICAgIHJldHVybiB2YWx1ZQoKCiMgYXN5bmMgZGVm66GcIOuwlOq+uOuptCDtjIzsnbTsjawg6rec7JW97J20IOq5qOyngOuKlCDtirnsiJgg66mU7ISc65OcIOKAlCDrjIDquLAg7ZWo7IiY66W8IOuEo+ycvOuptCDqsr3qs6Drp4wg64K464ukClNZTkNfT05MWV9EVU5ERVJTID0gZnJvemVuc2V0KHsKICAgICdfX3N0cl9fJywgJ19fcmVwcl9fJywgJ19fZm9ybWF0X18nLCAnX19lcV9fJywgJ19fbmVfXycsICdfX2x0X18nLCAnX19sZV9fJywgJ19fZ3RfXycsICdfX2dlX18nLAogICAgJ19fbGVuX18nLCAnX19ib29sX18nLCAnX19oYXNoX18nLCAnX19pdGVyX18nLCAnX19uZXh0X18nLCAnX19nZXRpdGVtX18nLCAnX19zZXRpdGVtX18nLCAnX19kZWxpdGVtX18nLAogICAgJ19fY29udGFpbnNfXycsICdfX2VudGVyX18nLCAnX19leGl0X18nLCAnX19kZWxfXycsICdfX2dldGF0dHJfXycsICdfX3NldGF0dHJfXycsICdfX2luZGV4X18nLAogICAgJ19faW50X18nLCAnX19mbG9hdF9fJywgJ19fYWRkX18nLCAnX19zdWJfXycsICdfX211bF9fJywgJ19fdHJ1ZWRpdl9fJywgJ19fbmVnX18nLCAnX19jYWxsX18nLAp9KQoKCiMgPT09IOyKpOy9lO2UhOyZgCDrsJTsnbjrlKkgPT09CmNsYXNzIF9CaW5kaW5nOgogICAgX19zbG90c19fID0gKCdraW5kJywgJ25vZGUnLCAndmFsdWUnLCAndGFyZ2V0JykKCiAgICBkZWYgX19pbml0X18oc2VsZiwga2luZCwgbm9kZT1Ob25lLCB2YWx1ZT1Ob25lLCB0YXJnZXQ9Tm9uZSk6CiAgICAgICAgIyBraW5kOiBkZWYgwrcgY2xhc3MgwrcgbGFtYmRhIMK3IHBhcmFtIMK3IGFzc2lnbiDCtyBpbXBvcnQgwrcgdnBtb2R1bGUgwrcgdnBuYW1lCiAgICAgICAgc2VsZi5raW5kID0ga2luZAogICAgICAgIHNlbGYubm9kZSA9IG5vZGUgICAgICAgICMgZGVmL2NsYXNzL2xhbWJkYSDrhbjrk5wsIHZwbmFtZeydtOuptCDsm5Drnpgg7J2066aEKHN0cikKICAgICAgICBzZWxmLnZhbHVlID0gdmFsdWUgICAgICAjIGFzc2lnbuydtOuptCDrjIDsnoXrkJwg6rCSIOuFuOuTnAogICAgICAgIHNlbGYudGFyZ2V0ID0gdGFyZ2V0CgoKY2xhc3MgX1Njb3BlOgogICAgX19zbG90c19fID0gKCdraW5kJywgJ25vZGUnLCAncGFyZW50JywgJ2JpbmRpbmdzJywgJ2dsb2JhbHMnLCAnbm9ubG9jYWxzJywgJ3N0YXJfdnB5dGhvbicsICdjaGlsZHJlbicpCgogICAgZGVmIF9faW5pdF9fKHNlbGYsIGtpbmQsIG5vZGUsIHBhcmVudCk6CiAgICAgICAgc2VsZi5raW5kID0ga2luZCAgICAgICAgICAgICMgbW9kdWxlIMK3IGZ1bmN0aW9uIMK3IGNsYXNzIMK3IGxhbWJkYQogICAgICAgIHNlbGYubm9kZSA9IG5vZGUKICAgICAgICBzZWxmLnBhcmVudCA9IHBhcmVudAogICAgICAgIHNlbGYuYmluZGluZ3MgPSB7fSAgICAgICAgICAjIG5hbWUg4oaSIFtfQmluZGluZywgLi4uXQogICAgICAgIHNlbGYuZ2xvYmFscyA9IHNldCgpCiAgICAgICAgc2VsZi5ub25sb2NhbHMgPSBzZXQoKQogICAgICAgIHNlbGYuc3Rhcl92cHl0aG9uID0gRmFsc2UgICAjIGZyb20gdnB5dGhvbiBpbXBvcnQgKiDqsIAg7J6I64qUIOyKpOy9lO2UhAogICAgICAgIHNlbGYuY2hpbGRyZW4gPSBbXQoKICAgIGRlZiBiaW5kKHNlbGYsIG5hbWUsIGJpbmRpbmcpOgogICAgICAgIHNlbGYuYmluZGluZ3Muc2V0ZGVmYXVsdChuYW1lLCBbXSkuYXBwZW5kKGJpbmRpbmcpCgoKZGVmIF90YXJnZXRfbmFtZXModGFyZ2V0KToKICAgICIiIuuMgOyehSDrjIDsg4Hsl5DshJwg7J2066aE65Ok7J2EICjsnbTrpoQsIOqwkiDsnITsuZgpIOyXhuydtCDtj4ntg4TtlZjqsowg672R64qU64ukLiIiIgogICAgaWYgaXNpbnN0YW5jZSh0YXJnZXQsIGFzdC5OYW1lKToKICAgICAgICByZXR1cm4gW3RhcmdldC5pZF0KICAgIGlmIGlzaW5zdGFuY2UodGFyZ2V0LCAoYXN0LlR1cGxlLCBhc3QuTGlzdCkpOgogICAgICAgIG5hbWVzID0gW10KICAgICAgICBmb3IgZWx0IGluIHRhcmdldC5lbHRzOgogICAgICAgICAgICBuYW1lcy5leHRlbmQoX3RhcmdldF9uYW1lcyhlbHQpKQogICAgICAgIHJldHVybiBuYW1lcwogICAgaWYgaXNpbnN0YW5jZSh0YXJnZXQsIGFzdC5TdGFycmVkKToKICAgICAgICByZXR1cm4gX3RhcmdldF9uYW1lcyh0YXJnZXQudmFsdWUpCiAgICByZXR1cm4gW10KCgpjbGFzcyBfU2NvcGVCdWlsZGVyKGFzdC5Ob2RlVmlzaXRvcik6CiAgICAiIiJBU1Trpbwg7ZWcIOuyiCDrj4zrqbAg7Iqk7L2U7ZSEIO2KuOumrOyZgCDrsJTsnbjrlKnsnYQg66eM65Og64ukLiIiIgoKICAgIGRlZiBfX2luaXRfXyhzZWxmKToKICAgICAgICBzZWxmLm1vZHVsZSA9IE5vbmUKICAgICAgICBzZWxmLnNjb3BlID0gTm9uZQogICAgICAgIHNlbGYuc2NvcGVfb2YgPSB7fSAgICAgIyBpZCjrhbjrk5wpIOKGkiDqt7gg64W465Oc6rCAIOunjOuTnOuKlCBfU2NvcGUKICAgICAgICBzZWxmLmVuY2xvc2luZyA9IHt9ICAgICMgaWQo64W465OcKSDihpIg64W465Oc6rCAIOuGk+yduCBfU2NvcGUKCiAgICBkZWYgdmlzaXRfTW9kdWxlKHNlbGYsIG5vZGUpOgogICAgICAgIHNlbGYubW9kdWxlID0gX1Njb3BlKCdtb2R1bGUnLCBub2RlLCBOb25lKQogICAgICAgIHNlbGYuc2NvcGUgPSBzZWxmLm1vZHVsZQogICAgICAgIHNlbGYuc2NvcGVfb2ZbaWQobm9kZSldID0gc2VsZi5tb2R1bGUKICAgICAgICBzZWxmLmdlbmVyaWNfdmlzaXQobm9kZSkKCiAgICBkZWYgX2VudGVyKHNlbGYsIGtpbmQsIG5vZGUpOgogICAgICAgIHNjb3BlID0gX1Njb3BlKGtpbmQsIG5vZGUsIHNlbGYuc2NvcGUpCiAgICAgICAgc2VsZi5zY29wZS5jaGlsZHJlbi5hcHBlbmQoc2NvcGUpCiAgICAgICAgc2VsZi5zY29wZV9vZltpZChub2RlKV0gPSBzY29wZQogICAgICAgIHNlbGYuZW5jbG9zaW5nW2lkKG5vZGUpXSA9IHNlbGYuc2NvcGUKICAgICAgICByZXR1cm4gc2NvcGUKCiAgICBkZWYgX3Zpc2l0X2Z1bmN0aW9uKHNlbGYsIG5vZGUpOgogICAgICAgIHNlbGYuc2NvcGUuYmluZChub2RlLm5hbWUsIF9CaW5kaW5nKCdkZWYnLCBub2RlKSkKICAgICAgICAjIOuNsOy9lOugiOydtO2EsMK36riw67O4IOyduOyImMK367CY7ZmYIOyjvOyEneydgCDrsJTquaUg7Iqk7L2U7ZSE7JeQ7IScIO2PieqwgOuQnOuLpAogICAgICAgIGZvciBkZWMgaW4gbm9kZS5kZWNvcmF0b3JfbGlzdDoKICAgICAgICAgICAgc2VsZi52aXNpdChkZWMpCiAgICAgICAgZm9yIGRlZmF1bHQgaW4gbGlzdChub2RlLmFyZ3MuZGVmYXVsdHMpICsgW2QgZm9yIGQgaW4gbm9kZS5hcmdzLmt3X2RlZmF1bHRzIGlmIGQgaXMgbm90IE5vbmVdOgogICAgICAgICAgICBzZWxmLnZpc2l0KGRlZmF1bHQpCiAgICAgICAgaWYgbm9kZS5yZXR1cm5zIGlzIG5vdCBOb25lOgogICAgICAgICAgICBzZWxmLnZpc2l0KG5vZGUucmV0dXJucykKICAgICAgICBpbm5lciA9IHNlbGYuX2VudGVyKCdmdW5jdGlvbicsIG5vZGUpCiAgICAgICAgc2F2ZWQsIHNlbGYuc2NvcGUgPSBzZWxmLnNjb3BlLCBpbm5lcgogICAgICAgIGFyZ3MgPSBub2RlLmFyZ3MKICAgICAgICBmb3IgYXJnIGluIGxpc3QoYXJncy5wb3Nvbmx5YXJncykgKyBsaXN0KGFyZ3MuYXJncykgKyBsaXN0KGFyZ3Mua3dvbmx5YXJncyk6CiAgICAgICAgICAgIGlubmVyLmJpbmQoYXJnLmFyZywgX0JpbmRpbmcoJ3BhcmFtJywgYXJnKSkKICAgICAgICBpZiBhcmdzLnZhcmFyZzoKICAgICAgICAgICAgaW5uZXIuYmluZChhcmdzLnZhcmFyZy5hcmcsIF9CaW5kaW5nKCdwYXJhbScsIGFyZ3MudmFyYXJnKSkKICAgICAgICBpZiBhcmdzLmt3YXJnOgogICAgICAgICAgICBpbm5lci5iaW5kKGFyZ3Mua3dhcmcuYXJnLCBfQmluZGluZygncGFyYW0nLCBhcmdzLmt3YXJnKSkKICAgICAgICBmb3Igc3RtdCBpbiBub2RlLmJvZHk6CiAgICAgICAgICAgIHNlbGYudmlzaXQoc3RtdCkKICAgICAgICBzZWxmLnNjb3BlID0gc2F2ZWQKCiAgICB2aXNpdF9GdW5jdGlvbkRlZiA9IF92aXNpdF9mdW5jdGlvbgogICAgdmlzaXRfQXN5bmNGdW5jdGlvbkRlZiA9IF92aXNpdF9mdW5jdGlvbgoKICAgIGRlZiB2aXNpdF9MYW1iZGEoc2VsZiwgbm9kZSk6CiAgICAgICAgZm9yIGRlZmF1bHQgaW4gbGlzdChub2RlLmFyZ3MuZGVmYXVsdHMpICsgW2QgZm9yIGQgaW4gbm9kZS5hcmdzLmt3X2RlZmF1bHRzIGlmIGQgaXMgbm90IE5vbmVdOgogICAgICAgICAgICBzZWxmLnZpc2l0KGRlZmF1bHQpCiAgICAgICAgaW5uZXIgPSBzZWxmLl9lbnRlcignbGFtYmRhJywgbm9kZSkKICAgICAgICBzYXZlZCwgc2VsZi5zY29wZSA9IHNlbGYuc2NvcGUsIGlubmVyCiAgICAgICAgYXJncyA9IG5vZGUuYXJncwogICAgICAgIGZvciBhcmcgaW4gbGlzdChhcmdzLnBvc29ubHlhcmdzKSArIGxpc3QoYXJncy5hcmdzKSArIGxpc3QoYXJncy5rd29ubHlhcmdzKToKICAgICAgICAgICAgaW5uZXIuYmluZChhcmcuYXJnLCBfQmluZGluZygncGFyYW0nLCBhcmcpKQogICAgICAgIGlmIGFyZ3MudmFyYXJnOgogICAgICAgICAgICBpbm5lci5iaW5kKGFyZ3MudmFyYXJnLmFyZywgX0JpbmRpbmcoJ3BhcmFtJywgYXJncy52YXJhcmcpKQogICAgICAgIGlmIGFyZ3Mua3dhcmc6CiAgICAgICAgICAgIGlubmVyLmJpbmQoYXJncy5rd2FyZy5hcmcsIF9CaW5kaW5nKCdwYXJhbScsIGFyZ3Mua3dhcmcpKQogICAgICAgIHNlbGYudmlzaXQobm9kZS5ib2R5KQogICAgICAgIHNlbGYuc2NvcGUgPSBzYXZlZAoKICAgIGRlZiB2aXNpdF9DbGFzc0RlZihzZWxmLCBub2RlKToKICAgICAgICBzZWxmLnNjb3BlLmJpbmQobm9kZS5uYW1lLCBfQmluZGluZygnY2xhc3MnLCBub2RlKSkKICAgICAgICBmb3IgZGVjIGluIG5vZGUuZGVjb3JhdG9yX2xpc3Q6CiAgICAgICAgICAgIHNlbGYudmlzaXQoZGVjKQogICAgICAgIGZvciBiYXNlIGluIG5vZGUuYmFzZXM6CiAgICAgICAgICAgIHNlbGYudmlzaXQoYmFzZSkKICAgICAgICBmb3Iga3cgaW4gbm9kZS5rZXl3b3JkczoKICAgICAgICAgICAgc2VsZi52aXNpdChrdykKICAgICAgICBpbm5lciA9IHNlbGYuX2VudGVyKCdjbGFzcycsIG5vZGUpCiAgICAgICAgc2F2ZWQsIHNlbGYuc2NvcGUgPSBzZWxmLnNjb3BlLCBpbm5lcgogICAgICAgIGZvciBzdG10IGluIG5vZGUuYm9keToKICAgICAgICAgICAgc2VsZi52aXNpdChzdG10KQogICAgICAgIHNlbGYuc2NvcGUgPSBzYXZlZAoKICAgIGRlZiBfYmluZF9hc3NpZ25fdGFyZ2V0cyhzZWxmLCB0YXJnZXRzLCB2YWx1ZSk6CiAgICAgICAgZm9yIHRhcmdldCBpbiB0YXJnZXRzOgogICAgICAgICAgICBpZiBpc2luc3RhbmNlKHRhcmdldCwgYXN0Lk5hbWUpOgogICAgICAgICAgICAgICAgc2VsZi5zY29wZS5iaW5kKHRhcmdldC5pZCwgX0JpbmRpbmcoJ2Fzc2lnbicsIHZhbHVlPXZhbHVlLCB0YXJnZXQ9dGFyZ2V0KSkKICAgICAgICAgICAgZWxpZiBpc2luc3RhbmNlKHRhcmdldCwgKGFzdC5UdXBsZSwgYXN0Lkxpc3QpKToKICAgICAgICAgICAgICAgIGVsdHMgPSB0YXJnZXQuZWx0cwogICAgICAgICAgICAgICAgIyBwMSwgcDIgPSBQbGF5ZXIoKSwgUGxheWVyKCkg4oaSIOynneydhCDrp57strAg6rCSIOuFuOuTnOulvCDquLDroZ3tlZzri6QKICAgICAgICAgICAgICAgIGlmIGlzaW5zdGFuY2UodmFsdWUsIChhc3QuVHVwbGUsIGFzdC5MaXN0KSkgYW5kIGxlbih2YWx1ZS5lbHRzKSA9PSBsZW4oZWx0cykgXAogICAgICAgICAgICAgICAgICAgICAgICBhbmQgbm90IGFueShpc2luc3RhbmNlKGUsIGFzdC5TdGFycmVkKSBmb3IgZSBpbiBlbHRzKToKICAgICAgICAgICAgICAgICAgICBmb3IgZWx0LCB2YWwgaW4gemlwKGVsdHMsIHZhbHVlLmVsdHMpOgogICAgICAgICAgICAgICAgICAgICAgICBzZWxmLl9iaW5kX2Fzc2lnbl90YXJnZXRzKFtlbHRdLCB2YWwpCiAgICAgICAgICAgICAgICBlbHNlOgogICAgICAgICAgICAgICAgICAgIGZvciBuYW1lIGluIF90YXJnZXRfbmFtZXModGFyZ2V0KToKICAgICAgICAgICAgICAgICAgICAgICAgc2VsZi5zY29wZS5iaW5kKG5hbWUsIF9CaW5kaW5nKCdhc3NpZ24nLCB2YWx1ZT1Ob25lKSkKICAgICAgICAgICAgZWxpZiBpc2luc3RhbmNlKHRhcmdldCwgYXN0LlN0YXJyZWQpOgogICAgICAgICAgICAgICAgZm9yIG5hbWUgaW4gX3RhcmdldF9uYW1lcyh0YXJnZXQpOgogICAgICAgICAgICAgICAgICAgIHNlbGYuc2NvcGUuYmluZChuYW1lLCBfQmluZGluZygnYXNzaWduJywgdmFsdWU9Tm9uZSkpCiAgICAgICAgICAgICMg7IaN7ISxwrfssqjsnpAg64yA7IOB7J2AIOydtOumhOydhCDrsJTsnbjrlKntlZjsp4Ag7JWK64qU64ukCgogICAgZGVmIHZpc2l0X0Fzc2lnbihzZWxmLCBub2RlKToKICAgICAgICBzZWxmLnZpc2l0KG5vZGUudmFsdWUpCiAgICAgICAgc2VsZi5fYmluZF9hc3NpZ25fdGFyZ2V0cyhub2RlLnRhcmdldHMsIG5vZGUudmFsdWUpCiAgICAgICAgZm9yIHRhcmdldCBpbiBub2RlLnRhcmdldHM6CiAgICAgICAgICAgIHNlbGYudmlzaXQodGFyZ2V0KQoKICAgIGRlZiB2aXNpdF9Bbm5Bc3NpZ24oc2VsZiwgbm9kZSk6CiAgICAgICAgaWYgbm9kZS52YWx1ZSBpcyBub3QgTm9uZToKICAgICAgICAgICAgc2VsZi52aXNpdChub2RlLnZhbHVlKQogICAgICAgICAgICBzZWxmLl9iaW5kX2Fzc2lnbl90YXJnZXRzKFtub2RlLnRhcmdldF0sIG5vZGUudmFsdWUpCiAgICAgICAgc2VsZi52aXNpdChub2RlLnRhcmdldCkKICAgICAgICBzZWxmLnZpc2l0KG5vZGUuYW5ub3RhdGlvbikKCiAgICBkZWYgdmlzaXRfQXVnQXNzaWduKHNlbGYsIG5vZGUpOgogICAgICAgIHNlbGYudmlzaXQobm9kZS52YWx1ZSkKICAgICAgICBzZWxmLl9iaW5kX2Fzc2lnbl90YXJnZXRzKFtub2RlLnRhcmdldF0sIE5vbmUpCiAgICAgICAgc2VsZi52aXNpdChub2RlLnRhcmdldCkKCiAgICBkZWYgdmlzaXRfTmFtZWRFeHByKHNlbGYsIG5vZGUpOgogICAgICAgIHNlbGYudmlzaXQobm9kZS52YWx1ZSkKICAgICAgICBzZWxmLnNjb3BlLmJpbmQobm9kZS50YXJnZXQuaWQsIF9CaW5kaW5nKCdhc3NpZ24nLCB2YWx1ZT1ub2RlLnZhbHVlKSkKCiAgICBkZWYgX2JpbmRfbG9vcF90YXJnZXQoc2VsZiwgdGFyZ2V0KToKICAgICAgICBmb3IgbmFtZSBpbiBfdGFyZ2V0X25hbWVzKHRhcmdldCk6CiAgICAgICAgICAgIHNlbGYuc2NvcGUuYmluZChuYW1lLCBfQmluZGluZygnYXNzaWduJywgdmFsdWU9Tm9uZSkpCgogICAgZGVmIHZpc2l0X0ZvcihzZWxmLCBub2RlKToKICAgICAgICBzZWxmLl9iaW5kX2xvb3BfdGFyZ2V0KG5vZGUudGFyZ2V0KQogICAgICAgIHNlbGYuZ2VuZXJpY192aXNpdChub2RlKQoKICAgIHZpc2l0X0FzeW5jRm9yID0gdmlzaXRfRm9yCgogICAgZGVmIHZpc2l0X2NvbXByZWhlbnNpb24oc2VsZiwgbm9kZSk6CiAgICAgICAgIyDsu7TtlITrpqztl6jshZgg67OA7IiY64qUIOqwgOq5jOyatCDsiqTsvZTtlITsnZgg67CU7J2465Sp7Jy866GcIOuzuOuLpCAo6re87IKsKQogICAgICAgIHNlbGYuX2JpbmRfbG9vcF90YXJnZXQobm9kZS50YXJnZXQpCiAgICAgICAgc2VsZi5nZW5lcmljX3Zpc2l0KG5vZGUpCgogICAgZGVmIHZpc2l0X1dpdGgoc2VsZiwgbm9kZSk6CiAgICAgICAgZm9yIGl0ZW0gaW4gbm9kZS5pdGVtczoKICAgICAgICAgICAgaWYgaXRlbS5vcHRpb25hbF92YXJzIGlzIG5vdCBOb25lOgogICAgICAgICAgICAgICAgc2VsZi5fYmluZF9sb29wX3RhcmdldChpdGVtLm9wdGlvbmFsX3ZhcnMpCiAgICAgICAgc2VsZi5nZW5lcmljX3Zpc2l0KG5vZGUpCgogICAgdmlzaXRfQXN5bmNXaXRoID0gdmlzaXRfV2l0aAoKICAgIGRlZiB2aXNpdF9FeGNlcHRIYW5kbGVyKHNlbGYsIG5vZGUpOgogICAgICAgIGlmIG5vZGUubmFtZToKICAgICAgICAgICAgc2VsZi5zY29wZS5iaW5kKG5vZGUubmFtZSwgX0JpbmRpbmcoJ2Fzc2lnbicsIHZhbHVlPU5vbmUpKQogICAgICAgIHNlbGYuZ2VuZXJpY192aXNpdChub2RlKQoKICAgIGRlZiB2aXNpdF9NYXRjaEFzKHNlbGYsIG5vZGUpOgogICAgICAgIGlmIG5vZGUubmFtZToKICAgICAgICAgICAgc2VsZi5zY29wZS5iaW5kKG5vZGUubmFtZSwgX0JpbmRpbmcoJ2Fzc2lnbicsIHZhbHVlPU5vbmUpKQogICAgICAgIHNlbGYuZ2VuZXJpY192aXNpdChub2RlKQoKICAgIGRlZiB2aXNpdF9NYXRjaFN0YXIoc2VsZiwgbm9kZSk6CiAgICAgICAgaWYgbm9kZS5uYW1lOgogICAgICAgICAgICBzZWxmLnNjb3BlLmJpbmQobm9kZS5uYW1lLCBfQmluZGluZygnYXNzaWduJywgdmFsdWU9Tm9uZSkpCgogICAgZGVmIHZpc2l0X01hdGNoTWFwcGluZyhzZWxmLCBub2RlKToKICAgICAgICBpZiBub2RlLnJlc3Q6CiAgICAgICAgICAgIHNlbGYuc2NvcGUuYmluZChub2RlLnJlc3QsIF9CaW5kaW5nKCdhc3NpZ24nLCB2YWx1ZT1Ob25lKSkKICAgICAgICBzZWxmLmdlbmVyaWNfdmlzaXQobm9kZSkKCiAgICBkZWYgdmlzaXRfSW1wb3J0KHNlbGYsIG5vZGUpOgogICAgICAgIGZvciBhbGlhcyBpbiBub2RlLm5hbWVzOgogICAgICAgICAgICBib3VuZCA9IGFsaWFzLmFzbmFtZSBvciBhbGlhcy5uYW1lLnNwbGl0KCcuJylbMF0KICAgICAgICAgICAgaWYgYWxpYXMubmFtZSBpbiBWUFlUSE9OX01PRFVMRVM6CiAgICAgICAgICAgICAgICBzZWxmLnNjb3BlLmJpbmQoYm91bmQsIF9CaW5kaW5nKCd2cG1vZHVsZScpKQogICAgICAgICAgICBlbHNlOgogICAgICAgICAgICAgICAgc2VsZi5zY29wZS5iaW5kKGJvdW5kLCBfQmluZGluZygnaW1wb3J0JykpCgogICAgZGVmIHZpc2l0X0ltcG9ydEZyb20oc2VsZiwgbm9kZSk6CiAgICAgICAgaWYgbm9kZS5tb2R1bGUgaW4gVlBZVEhPTl9NT0RVTEVTOgogICAgICAgICAgICBmb3IgYWxpYXMgaW4gbm9kZS5uYW1lczoKICAgICAgICAgICAgICAgIGlmIGFsaWFzLm5hbWUgPT0gJyonOgogICAgICAgICAgICAgICAgICAgIHNlbGYuc2NvcGUuc3Rhcl92cHl0aG9uID0gVHJ1ZQogICAgICAgICAgICAgICAgZWxzZToKICAgICAgICAgICAgICAgICAgICBzZWxmLnNjb3BlLmJpbmQoYWxpYXMuYXNuYW1lIG9yIGFsaWFzLm5hbWUsIF9CaW5kaW5nKCd2cG5hbWUnLCBub2RlPWFsaWFzLm5hbWUpKQogICAgICAgIGVsc2U6CiAgICAgICAgICAgIGZvciBhbGlhcyBpbiBub2RlLm5hbWVzOgogICAgICAgICAgICAgICAgaWYgYWxpYXMubmFtZSAhPSAnKic6CiAgICAgICAgICAgICAgICAgICAgc2VsZi5zY29wZS5iaW5kKGFsaWFzLmFzbmFtZSBvciBhbGlhcy5uYW1lLCBfQmluZGluZygnaW1wb3J0JykpCgogICAgZGVmIHZpc2l0X0dsb2JhbChzZWxmLCBub2RlKToKICAgICAgICBzZWxmLnNjb3BlLmdsb2JhbHMudXBkYXRlKG5vZGUubmFtZXMpCgogICAgZGVmIHZpc2l0X05vbmxvY2FsKHNlbGYsIG5vZGUpOgogICAgICAgIHNlbGYuc2NvcGUubm9ubG9jYWxzLnVwZGF0ZShub2RlLm5hbWVzKQoKCiMgPT09IOu2hOyEnSA9PT0KY2xhc3MgX0FuYWx5c2lzOgogICAgZGVmIF9faW5pdF9fKHNlbGYsIHRyZWUpOgogICAgICAgIGJ1aWxkZXIgPSBfU2NvcGVCdWlsZGVyKCkKICAgICAgICBidWlsZGVyLnZpc2l0KHRyZWUpCiAgICAgICAgc2VsZi5tb2R1bGVfc2NvcGUgPSBidWlsZGVyLm1vZHVsZQogICAgICAgIHNlbGYuc2NvcGVfb2YgPSBidWlsZGVyLnNjb3BlX29mCiAgICAgICAgc2VsZi5mdW5jdGlvbnMgPSBbXSAgICAgICAgICAgICMg66qo65OgIGRlZiDrhbjrk5wgKOuTseyepSDsiJwpCiAgICAgICAgc2VsZi5mdW5jX3Njb3BlID0ge30gICAgICAgICAgICMgaWQoZGVmKSDihpIgX1Njb3BlICjqt7ggZGVmIOuzuOusuCDsiqTsvZTtlIQpCiAgICAgICAgc2VsZi5jbGFzc19vZl9tZXRob2QgPSB7fSAgICAgICMgaWQoZGVmKSDihpIgQ2xhc3NEZWYgKOuplOyEnOuTnOydvCDrlYwpCiAgICAgICAgc2VsZi5hc3luY19ub2RlcyA9IHNldCgpICAgICAgICMgYXN5bmMgZGVm66GcIOuwlOq/gCBkZWbsnZggaWQKICAgICAgICBzZWxmLnN5bmNfb25seSA9IHNldCgpICAgICAgICAgIyDrsJTqv4Ag7IiYIOyXhuuKlCBkZWbsnZggaWQgKOyDneyEseq4sMK3X19pbml0X18pCiAgICAgICAgc2VsZi5hc3luY19tZXRob2RfbmFtZXMgPSBzZXQoKQogICAgICAgIHNlbGYud2FybmluZ3MgPSBbXQogICAgICAgIHNlbGYuX3Zpc2l0aW5nID0gc2V0KCkKICAgICAgICBzZWxmLl9jb2xsZWN0KHNlbGYubW9kdWxlX3Njb3BlKQoKICAgIGRlZiBfY29sbGVjdChzZWxmLCBzY29wZSk6CiAgICAgICAgZm9yIGNoaWxkIGluIHNjb3BlLmNoaWxkcmVuOgogICAgICAgICAgICBpZiBjaGlsZC5raW5kID09ICdmdW5jdGlvbic6CiAgICAgICAgICAgICAgICBub2RlID0gY2hpbGQubm9kZQogICAgICAgICAgICAgICAgc2VsZi5mdW5jdGlvbnMuYXBwZW5kKG5vZGUpCiAgICAgICAgICAgICAgICBzZWxmLmZ1bmNfc2NvcGVbaWQobm9kZSldID0gY2hpbGQKICAgICAgICAgICAgICAgIGlmIHNjb3BlLmtpbmQgPT0gJ2NsYXNzJzoKICAgICAgICAgICAgICAgICAgICBzZWxmLmNsYXNzX29mX21ldGhvZFtpZChub2RlKV0gPSBzY29wZS5ub2RlCiAgICAgICAgICAgICAgICBpZiBpc2luc3RhbmNlKG5vZGUsIGFzdC5Bc3luY0Z1bmN0aW9uRGVmKToKICAgICAgICAgICAgICAgICAgICBzZWxmLmFzeW5jX25vZGVzLmFkZChpZChub2RlKSkKICAgICAgICAgICAgc2VsZi5fY29sbGVjdChjaGlsZCkKCiAgICAjIC0tLSDsnbTrpoQg7ZKA7J20IC0tLQogICAgZGVmIHJlc29sdmUoc2VsZiwgc2NvcGUsIG5hbWUpOgogICAgICAgICIiIuyKpOy9lO2UhCDsgqzsiqzsl5DshJwg7J2066aE7J2YIOuwlOyduOuUqSDrqqnroZ3qs7wg6re4IOyKpOy9lO2UhOulvCDssL7ripTri6QuIOyXhuycvOuptCAoTm9uZSwgTm9uZSkuIiIiCiAgICAgICAgY3VycmVudCA9IHNjb3BlCiAgICAgICAgZmlyc3QgPSBUcnVlCiAgICAgICAgd2hpbGUgY3VycmVudCBpcyBub3QgTm9uZToKICAgICAgICAgICAgaWYgbmFtZSBpbiBjdXJyZW50Lmdsb2JhbHMgYW5kIGN1cnJlbnQgaXMgbm90IHNlbGYubW9kdWxlX3Njb3BlOgogICAgICAgICAgICAgICAgIyBnbG9iYWwg7ISg7Ja4IOKAlCDrqqjrk4gg7KCE7Jet66eMIOuzuOuLpCAo66qo65OIIOyImOykgOydmCBnbG9iYWwg7ISg7Ja47J2AIOyVhOustCDrnLvsnbQg7JeG64ukKQogICAgICAgICAgICAgICAgbW9kdWxlID0gc2VsZi5tb2R1bGVfc2NvcGUKICAgICAgICAgICAgICAgIGlmIG5hbWUgaW4gbW9kdWxlLmJpbmRpbmdzOgogICAgICAgICAgICAgICAgICAgIHJldHVybiBtb2R1bGUuYmluZGluZ3NbbmFtZV0sIG1vZHVsZQogICAgICAgICAgICAgICAgcmV0dXJuIE5vbmUsIE5vbmUKICAgICAgICAgICAgaWYgY3VycmVudC5raW5kID09ICdjbGFzcycgYW5kIG5vdCBmaXJzdDoKICAgICAgICAgICAgICAgIGN1cnJlbnQgPSBjdXJyZW50LnBhcmVudAogICAgICAgICAgICAgICAgY29udGludWUKICAgICAgICAgICAgaWYgbmFtZSBpbiBjdXJyZW50LmJpbmRpbmdzIGFuZCBuYW1lIG5vdCBpbiBjdXJyZW50Lm5vbmxvY2FsczoKICAgICAgICAgICAgICAgIHJldHVybiBjdXJyZW50LmJpbmRpbmdzW25hbWVdLCBjdXJyZW50CiAgICAgICAgICAgIGN1cnJlbnQgPSBjdXJyZW50LnBhcmVudAogICAgICAgICAgICBmaXJzdCA9IEZhbHNlCiAgICAgICAgcmV0dXJuIE5vbmUsIE5vbmUKCiAgICBkZWYgc3Rhcl9pbXBvcnRzX3ZweXRob24oc2VsZiwgc2NvcGUpOgogICAgICAgIGN1cnJlbnQgPSBzY29wZQogICAgICAgIHdoaWxlIGN1cnJlbnQgaXMgbm90IE5vbmU6CiAgICAgICAgICAgIGlmIGN1cnJlbnQuc3Rhcl92cHl0aG9uOgogICAgICAgICAgICAgICAgcmV0dXJuIFRydWUKICAgICAgICAgICAgY3VycmVudCA9IGN1cnJlbnQucGFyZW50CiAgICAgICAgcmV0dXJuIEZhbHNlCgogICAgZGVmIF9jbGFzc19iaW5kaW5nKHNlbGYsIHNjb3BlLCBuYW1lKToKICAgICAgICBiaW5kaW5ncywgXyA9IHNlbGYucmVzb2x2ZShzY29wZSwgbmFtZSkKICAgICAgICBpZiBiaW5kaW5ncyBhbmQgbGVuKGJpbmRpbmdzKSA9PSAxIGFuZCBiaW5kaW5nc1swXS5raW5kID09ICdjbGFzcyc6CiAgICAgICAgICAgIHJldHVybiBiaW5kaW5nc1swXS5ub2RlCiAgICAgICAgcmV0dXJuIE5vbmUKCiAgICBkZWYgX2ZpbmRfbWV0aG9kKHNlbGYsIGNsYXNzX25vZGUsIG1ldGhvZF9uYW1lLCBzZWVuPU5vbmUpOgogICAgICAgICIiIu2BtOuemOyKpCjsmYAg7IKs7Jqp7J6QIOq4sOuwmCDtgbTrnpjsiqQp7JeQ7IScIOuplOyEnOuTnCBkZWbrpbwg7LC+64qU64ukLiIiIgogICAgICAgIHNlZW4gPSBzZWVuIG9yIHNldCgpCiAgICAgICAgaWYgaWQoY2xhc3Nfbm9kZSkgaW4gc2VlbjoKICAgICAgICAgICAgcmV0dXJuIE5vbmUKICAgICAgICBzZWVuLmFkZChpZChjbGFzc19ub2RlKSkKICAgICAgICBmb3Igc3RtdCBpbiBjbGFzc19ub2RlLmJvZHk6CiAgICAgICAgICAgIGlmIGlzaW5zdGFuY2Uoc3RtdCwgX0ZVTkNfTk9ERVMpIGFuZCBzdG10Lm5hbWUgPT0gbWV0aG9kX25hbWU6CiAgICAgICAgICAgICAgICByZXR1cm4gc3RtdAogICAgICAgIGNsYXNzX3Njb3BlID0gc2VsZi5zY29wZV9vZi5nZXQoaWQoY2xhc3Nfbm9kZSkpCiAgICAgICAgb3V0ZXIgPSBjbGFzc19zY29wZS5wYXJlbnQgaWYgY2xhc3Nfc2NvcGUgZWxzZSBzZWxmLm1vZHVsZV9zY29wZQogICAgICAgIGZvciBiYXNlIGluIGNsYXNzX25vZGUuYmFzZXM6CiAgICAgICAgICAgIGlmIGlzaW5zdGFuY2UoYmFzZSwgYXN0Lk5hbWUpOgogICAgICAgICAgICAgICAgYmFzZV9ub2RlID0gc2VsZi5fY2xhc3NfYmluZGluZyhvdXRlciwgYmFzZS5pZCkKICAgICAgICAgICAgICAgIGlmIGJhc2Vfbm9kZSBpcyBub3QgTm9uZToKICAgICAgICAgICAgICAgICAgICBmb3VuZCA9IHNlbGYuX2ZpbmRfbWV0aG9kKGJhc2Vfbm9kZSwgbWV0aG9kX25hbWUsIHNlZW4pCiAgICAgICAgICAgICAgICAgICAgaWYgZm91bmQgaXMgbm90IE5vbmU6CiAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiBmb3VuZAogICAgICAgIHJldHVybiBOb25lCgogICAgZGVmIF9mdW5jX2tpbmQoc2VsZiwgbm9kZSk6CiAgICAgICAgaWYgaWQobm9kZSkgaW4gc2VsZi5hc3luY19ub2RlcyBhbmQgaWQobm9kZSkgbm90IGluIHNlbGYuc3luY19vbmx5OgogICAgICAgICAgICByZXR1cm4gQ0VSVEFJTl9BU1lOQwogICAgICAgIHJldHVybiBDRVJUQUlOX1NZTkMKCiAgICBkZWYgX2xhbWJkYV9raW5kKHNlbGYsIG5vZGUpOgogICAgICAgICIiIuuejOuLpOuKlCBhc3luY+qwgCDrkKAg7IiYIOyXhuuLpC4g67O466y47JeQIOuMgOq4sCDtmLjstpzsnbQg7J6I7Jy866m0IOy9lOujqO2LtOydhCDrj4zroKTspIQg7IiYIOyeiOycvOuvgOuhnCDrr7jtmZXsoJUuIiIiCiAgICAgICAgaWYgaWQobm9kZSkgaW4gc2VsZi5fdmlzaXRpbmc6CiAgICAgICAgICAgIHJldHVybiBVTkNFUlRBSU4gICMgZiA9IGxhbWJkYTogZigpIOqwmeydgCDsnpDquLAg7LC47KGwCiAgICAgICAgc2VsZi5fdmlzaXRpbmcuYWRkKGlkKG5vZGUpKQogICAgICAgIHRyeToKICAgICAgICAgICAgZm9yIGNhbGwgaW4gX2l0ZXJfc2NvcGVfY2FsbHMobm9kZSk6CiAgICAgICAgICAgICAgICBpZiBzZWxmLmNsYXNzaWZ5X2NhbGwoY2FsbCwgc2VsZi5zY29wZV9vZltpZChub2RlKV0pICE9IENFUlRBSU5fU1lOQzoKICAgICAgICAgICAgICAgICAgICByZXR1cm4gVU5DRVJUQUlOCiAgICAgICAgICAgIHJldHVybiBDRVJUQUlOX1NZTkMKICAgICAgICBmaW5hbGx5OgogICAgICAgICAgICBzZWxmLl92aXNpdGluZy5kaXNjYXJkKGlkKG5vZGUpKQoKICAgIGRlZiBfbmFtZV9raW5kKHNlbGYsIHNjb3BlLCBuYW1lLCBkZXB0aD0wKToKICAgICAgICAiIiLsnbTrpoTsnLzroZwg67aA66W064qUIO2YuOy2nOydmCDrtoTrpZgiIiIKICAgICAgICBpZiBkZXB0aCA+IDg6CiAgICAgICAgICAgIHJldHVybiBVTkNFUlRBSU4KICAgICAgICBiaW5kaW5ncywgXyA9IHNlbGYucmVzb2x2ZShzY29wZSwgbmFtZSkKICAgICAgICBpZiBub3QgYmluZGluZ3M6CiAgICAgICAgICAgICMg67CU7J2465Sp7J20IOyXhuycvOuptCBBUEkg7KCE7JetKOuYkOuKlCBmcm9tIHZweXRob24gaW1wb3J0ICop7JeQ7IScIOyYqCDsnbTrpoTsnbTri6QKICAgICAgICAgICAgcmV0dXJuIENFUlRBSU5fQVNZTkMgaWYgbmFtZSBpbiBCTE9DS0lOR19OQU1FUyBlbHNlIENFUlRBSU5fU1lOQwogICAgICAgIGlmIGxlbihiaW5kaW5ncykgPiAxOgogICAgICAgICAgICBraW5kcyA9IHtiLmtpbmQgZm9yIGIgaW4gYmluZGluZ3N9CiAgICAgICAgICAgIGlmIGtpbmRzID09IHsnZGVmJ306CiAgICAgICAgICAgICAgICBmdW5jX2tpbmRzID0ge3NlbGYuX2Z1bmNfa2luZChiLm5vZGUpIGZvciBiIGluIGJpbmRpbmdzfQogICAgICAgICAgICAgICAgcmV0dXJuIGZ1bmNfa2luZHMucG9wKCkgaWYgbGVuKGZ1bmNfa2luZHMpID09IDEgZWxzZSBVTkNFUlRBSU4KICAgICAgICAgICAgcmV0dXJuIFVOQ0VSVEFJTgogICAgICAgIGIgPSBiaW5kaW5nc1swXQogICAgICAgIGlmIGIua2luZCA9PSAnZGVmJzoKICAgICAgICAgICAgcmV0dXJuIHNlbGYuX2Z1bmNfa2luZChiLm5vZGUpCiAgICAgICAgaWYgYi5raW5kID09ICdjbGFzcyc6CiAgICAgICAgICAgIHJldHVybiBDRVJUQUlOX1NZTkMKICAgICAgICBpZiBiLmtpbmQgPT0gJ2xhbWJkYSc6CiAgICAgICAgICAgIHJldHVybiBzZWxmLl9sYW1iZGFfa2luZChiLm5vZGUpCiAgICAgICAgaWYgYi5raW5kID09ICd2cG5hbWUnOgogICAgICAgICAgICByZXR1cm4gQ0VSVEFJTl9BU1lOQyBpZiBiLm5vZGUgaW4gQkxPQ0tJTkdfTkFNRVMgZWxzZSBDRVJUQUlOX1NZTkMKICAgICAgICBpZiBiLmtpbmQgaW4gKCdpbXBvcnQnLCAndnBtb2R1bGUnKToKICAgICAgICAgICAgcmV0dXJuIENFUlRBSU5fU1lOQwogICAgICAgIGlmIGIua2luZCA9PSAnYXNzaWduJyBhbmQgaXNpbnN0YW5jZShiLnZhbHVlLCBhc3QuTGFtYmRhKToKICAgICAgICAgICAgcmV0dXJuIHNlbGYuX2xhbWJkYV9raW5kKGIudmFsdWUpCiAgICAgICAgaWYgYi5raW5kID09ICdhc3NpZ24nIGFuZCBpc2luc3RhbmNlKGIudmFsdWUsIGFzdC5DYWxsKSBhbmQgaXNpbnN0YW5jZShiLnZhbHVlLmZ1bmMsIGFzdC5OYW1lKSBcCiAgICAgICAgICAgICAgICBhbmQgc2VsZi5fY2xhc3NfYmluZGluZyhzY29wZSwgYi52YWx1ZS5mdW5jLmlkKSBpcyBub3QgTm9uZToKICAgICAgICAgICAgcmV0dXJuIENFUlRBSU5fU1lOQyAgIyDsnbjsiqTthLTsiqTrpbwg67CU66GcIOu2gOultOuptCBfX2NhbGxfXyDigJQg64yA6riw7JmAIOustOq0gAogICAgICAgIGlmIGIua2luZCA9PSAnYXNzaWduJyBhbmQgaXNpbnN0YW5jZShiLnZhbHVlLCBhc3QuTmFtZSk6CiAgICAgICAgICAgIHJldHVybiBzZWxmLl9uYW1lX2tpbmQoc2NvcGUsIGIudmFsdWUuaWQsIGRlcHRoICsgMSkgICMgdmVjID0gdmVjdG9yLCBmID0gbW92ZQogICAgICAgIGlmIGIua2luZCA9PSAnYXNzaWduJyBhbmQgaXNpbnN0YW5jZShiLnZhbHVlLCBhc3QuQXR0cmlidXRlKSBhbmQgaXNpbnN0YW5jZShiLnZhbHVlLnZhbHVlLCBhc3QuTmFtZSk6CiAgICAgICAgICAgIG1vZCwgXyA9IHNlbGYucmVzb2x2ZShzY29wZSwgYi52YWx1ZS52YWx1ZS5pZCkKICAgICAgICAgICAgaWYgbW9kIGFuZCBsZW4obW9kKSA9PSAxIGFuZCBtb2RbMF0ua2luZCA9PSAnaW1wb3J0JzoKICAgICAgICAgICAgICAgIHJldHVybiBDRVJUQUlOX1NZTkMgICMgY2hvaWNlID0gcmFuZG9tLmNob2ljZQogICAgICAgIHJldHVybiBVTkNFUlRBSU4gICMg66ek6rCc67OA7IiYwrfrjIDsnoXCt+uwmOuztSDrs4DsiJgg65OxCgogICAgZGVmIF9yZWNlaXZlcl9jbGFzcyhzZWxmLCBzY29wZSwgcmVjZWl2ZXIpOgogICAgICAgICIiIuyImOyLoOyekCDsnbTrpoTsnbQg7Ja064qQIOyCrOyaqeyekCDtgbTrnpjsiqTsnZgg7J247Iqk7YS07Iqk7J247KeAIO2Zleygle2VoCDsiJgg7J6I7Jy866m0IENsYXNzRGVmIiIiCiAgICAgICAgaWYgbm90IGlzaW5zdGFuY2UocmVjZWl2ZXIsIGFzdC5OYW1lKToKICAgICAgICAgICAgcmV0dXJuIE5vbmUKICAgICAgICBpZiByZWNlaXZlci5pZCBpbiAoJ3NlbGYnLCAnY2xzJyk6CiAgICAgICAgICAgIHMgPSBzY29wZQogICAgICAgICAgICB3aGlsZSBzIGlzIG5vdCBOb25lIGFuZCBzLmtpbmQgIT0gJ2Z1bmN0aW9uJzoKICAgICAgICAgICAgICAgIHMgPSBzLnBhcmVudAogICAgICAgICAgICBpZiBzIGlzIG5vdCBOb25lOgogICAgICAgICAgICAgICAgcmV0dXJuIHNlbGYuY2xhc3Nfb2ZfbWV0aG9kLmdldChpZChzLm5vZGUpKQogICAgICAgICAgICByZXR1cm4gTm9uZQogICAgICAgIGJpbmRpbmdzLCBfID0gc2VsZi5yZXNvbHZlKHNjb3BlLCByZWNlaXZlci5pZCkKICAgICAgICBpZiBub3QgYmluZGluZ3Mgb3IgbGVuKGJpbmRpbmdzKSAhPSAxOgogICAgICAgICAgICByZXR1cm4gTm9uZQogICAgICAgIGIgPSBiaW5kaW5nc1swXQogICAgICAgIGlmIGIua2luZCA9PSAnYXNzaWduJyBhbmQgaXNpbnN0YW5jZShiLnZhbHVlLCBhc3QuQ2FsbCkgYW5kIGlzaW5zdGFuY2UoYi52YWx1ZS5mdW5jLCBhc3QuTmFtZSk6CiAgICAgICAgICAgIHJldHVybiBzZWxmLl9jbGFzc19iaW5kaW5nKHNjb3BlLCBiLnZhbHVlLmZ1bmMuaWQpCiAgICAgICAgcmV0dXJuIE5vbmUKCiAgICBkZWYgX2lzX3NjZW5lKHNlbGYsIHNjb3BlLCBub2RlKToKICAgICAgICBpZiBpc2luc3RhbmNlKG5vZGUsIGFzdC5OYW1lKToKICAgICAgICAgICAgaWYgbm9kZS5pZCA9PSAnc2NlbmUnOgogICAgICAgICAgICAgICAgYmluZGluZ3MsIF8gPSBzZWxmLnJlc29sdmUoc2NvcGUsICdzY2VuZScpCiAgICAgICAgICAgICAgICBpZiBub3QgYmluZGluZ3M6CiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIFRydWUKICAgICAgICAgICAgICAgIHJldHVybiBsZW4oYmluZGluZ3MpID09IDEgYW5kIGJpbmRpbmdzWzBdLmtpbmQgPT0gJ3ZwbmFtZScgYW5kIGJpbmRpbmdzWzBdLm5vZGUgPT0gJ3NjZW5lJwogICAgICAgICAgICBiaW5kaW5ncywgXyA9IHNlbGYucmVzb2x2ZShzY29wZSwgbm9kZS5pZCkKICAgICAgICAgICAgaWYgYmluZGluZ3MgYW5kIGxlbihiaW5kaW5ncykgPT0gMToKICAgICAgICAgICAgICAgIGIgPSBiaW5kaW5nc1swXQogICAgICAgICAgICAgICAgaWYgYi5raW5kID09ICd2cG5hbWUnOgogICAgICAgICAgICAgICAgICAgIHJldHVybiBiLm5vZGUgPT0gJ3NjZW5lJwogICAgICAgICAgICAgICAgaWYgYi5raW5kID09ICdhc3NpZ24nIGFuZCBiLnZhbHVlIGlzIG5vdCBOb25lOgogICAgICAgICAgICAgICAgICAgIHJldHVybiBzZWxmLl9pc19zY2VuZShzY29wZSwgYi52YWx1ZSkKICAgICAgICAgICAgcmV0dXJuIEZhbHNlCiAgICAgICAgaWYgaXNpbnN0YW5jZShub2RlLCBhc3QuQXR0cmlidXRlKSBhbmQgaXNpbnN0YW5jZShub2RlLnZhbHVlLCBhc3QuTmFtZSkgYW5kIG5vZGUuYXR0ciA9PSAnc2NlbmUnOgogICAgICAgICAgICBiaW5kaW5ncywgXyA9IHNlbGYucmVzb2x2ZShzY29wZSwgbm9kZS52YWx1ZS5pZCkKICAgICAgICAgICAgcmV0dXJuIGJvb2woYmluZGluZ3MpIGFuZCBsZW4oYmluZGluZ3MpID09IDEgYW5kIGJpbmRpbmdzWzBdLmtpbmQgPT0gJ3ZwbW9kdWxlJwogICAgICAgIHJldHVybiBGYWxzZQoKICAgIGRlZiBjbGFzc2lmeV9jYWxsKHNlbGYsIGNhbGwsIHNjb3BlKToKICAgICAgICAiIiJDYWxsIOuFuOuTnOulvCDtmZXsoJUg64yA6riwwrftmZXsoJUg64+Z6riwwrfrr7jtmZXsoJXsnLzroZwg64KY64iI64ukLiIiIgogICAgICAgIGZ1bmMgPSBjYWxsLmZ1bmMKICAgICAgICBpZiBpc2luc3RhbmNlKGZ1bmMsIGFzdC5OYW1lKToKICAgICAgICAgICAgcmV0dXJuIHNlbGYuX25hbWVfa2luZChzY29wZSwgZnVuYy5pZCkKICAgICAgICBpZiBpc2luc3RhbmNlKGZ1bmMsIGFzdC5BdHRyaWJ1dGUpOgogICAgICAgICAgICBhdHRyID0gZnVuYy5hdHRyCiAgICAgICAgICAgIHJlY2VpdmVyID0gZnVuYy52YWx1ZQogICAgICAgICAgICBpZiBhdHRyIGluIFNDRU5FX0JMT0NLSU5HX0FUVFJTIGFuZCBzZWxmLl9pc19zY2VuZShzY29wZSwgcmVjZWl2ZXIpOgogICAgICAgICAgICAgICAgcmV0dXJuIENFUlRBSU5fQVNZTkMKICAgICAgICAgICAgaWYgaXNpbnN0YW5jZShyZWNlaXZlciwgYXN0Lk5hbWUpOgogICAgICAgICAgICAgICAgYmluZGluZ3MsIF8gPSBzZWxmLnJlc29sdmUoc2NvcGUsIHJlY2VpdmVyLmlkKQogICAgICAgICAgICAgICAgaWYgYmluZGluZ3MgYW5kIGxlbihiaW5kaW5ncykgPT0gMSBhbmQgYmluZGluZ3NbMF0ua2luZCA9PSAndnBtb2R1bGUnOgogICAgICAgICAgICAgICAgICAgIHJldHVybiBDRVJUQUlOX0FTWU5DIGlmIGF0dHIgaW4gQkxPQ0tJTkdfTkFNRVMgZWxzZSBDRVJUQUlOX1NZTkMKICAgICAgICAgICAgICAgIGlmIGJpbmRpbmdzIGFuZCBsZW4oYmluZGluZ3MpID09IDEgYW5kIGJpbmRpbmdzWzBdLmtpbmQgPT0gJ2ltcG9ydCc6CiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIENFUlRBSU5fU1lOQyAgIyBtYXRoLnNxcnQoKSwgcmFuZG9tLmNob2ljZSgpCiAgICAgICAgICAgIGNsYXNzX25vZGUgPSBzZWxmLl9yZWNlaXZlcl9jbGFzcyhzY29wZSwgcmVjZWl2ZXIpCiAgICAgICAgICAgIGlmIGNsYXNzX25vZGUgaXMgbm90IE5vbmU6CiAgICAgICAgICAgICAgICBtZXRob2QgPSBzZWxmLl9maW5kX21ldGhvZChjbGFzc19ub2RlLCBhdHRyKQogICAgICAgICAgICAgICAgaWYgbWV0aG9kIGlzIG5vdCBOb25lOgogICAgICAgICAgICAgICAgICAgIGtpbmQgPSBzZWxmLl9mdW5jX2tpbmQobWV0aG9kKQogICAgICAgICAgICAgICAgICAgIGlmIGtpbmQgPT0gQ0VSVEFJTl9TWU5DIGFuZCBhdHRyIGluIHNlbGYuYXN5bmNfbWV0aG9kX25hbWVzOgogICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gVU5DRVJUQUlOICAjIOyekOyLnSDtgbTrnpjsiqTqsIAg64yA6riwIOuplOyEnOuTnOuhnCDsnqzsoJXsnZjtlojsnYQg7IiYIOyeiOuLpAogICAgICAgICAgICAgICAgICAgIHJldHVybiBraW5kCiAgICAgICAgICAgIGlmIGF0dHIgaW4gc2VsZi5hc3luY19tZXRob2RfbmFtZXMgb3IgYXR0ciBpbiBTQ0VORV9CTE9DS0lOR19BVFRSUzoKICAgICAgICAgICAgICAgIHJldHVybiBVTkNFUlRBSU4KICAgICAgICAgICAgcmV0dXJuIENFUlRBSU5fU1lOQwogICAgICAgICMg7LKo7J6QwrftmLjstpwg6rKw6rO8wrfrnozri6Tsi50g65Ox7J2EIOuwlOuhnCDrtoDrpbTripQg6rK97JqwCiAgICAgICAgcmV0dXJuIFVOQ0VSVEFJTgoKICAgICMgLS0tIOqzoOygleygkCAtLS0KICAgIGRlZiBtYXJrX2FzeW5jKHNlbGYpOgogICAgICAgIGNoYW5nZWQgPSBUcnVlCiAgICAgICAgd2hpbGUgY2hhbmdlZDoKICAgICAgICAgICAgY2hhbmdlZCA9IEZhbHNlCiAgICAgICAgICAgIGZvciBub2RlIGluIHNlbGYuZnVuY3Rpb25zOgogICAgICAgICAgICAgICAgaWYgaWQobm9kZSkgaW4gc2VsZi5hc3luY19ub2RlcyBvciBpZChub2RlKSBpbiBzZWxmLnN5bmNfb25seToKICAgICAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICAgICAgc2NvcGUgPSBzZWxmLmZ1bmNfc2NvcGVbaWQobm9kZSldCiAgICAgICAgICAgICAgICBuZWVkcyA9IGFueShzZWxmLmNsYXNzaWZ5X2NhbGwoYywgc2NvcGUpICE9IENFUlRBSU5fU1lOQyBmb3IgYyBpbiBfaXRlcl9zY29wZV9jYWxscyhub2RlKSkKICAgICAgICAgICAgICAgIGlmIG5vdCBuZWVkczoKICAgICAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICAgICAgaWYgX2NvbnRhaW5zX3lpZWxkKG5vZGUpOgogICAgICAgICAgICAgICAgICAgIHNlbGYuc3luY19vbmx5LmFkZChpZChub2RlKSkKICAgICAgICAgICAgICAgICAgICBzZWxmLndhcm5pbmdzLmFwcGVuZCgKICAgICAgICAgICAgICAgICAgICAgICAgZiJ7bm9kZS5saW5lbm9967KIIOykhDogeWllbGTqsIAg7J6I64qUIO2VqOyImCB7bm9kZS5uYW1lfSgpIOyViOyXkOyEnOuKlCByYXRlKCnCt3NsZWVwKCkg6rCZ7J2AIOuMgOq4sCDtlajsiJjrpbwg7JO4IOyImCDsl4bsirXri4jri6QuIikKICAgICAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICAgICAgaWYgbm9kZS5uYW1lID09ICdfX2luaXRfXycgYW5kIGlkKG5vZGUpIGluIHNlbGYuY2xhc3Nfb2ZfbWV0aG9kOgogICAgICAgICAgICAgICAgICAgIHNlbGYuc3luY19vbmx5LmFkZChpZChub2RlKSkKICAgICAgICAgICAgICAgICAgICBzZWxmLndhcm5pbmdzLmFwcGVuZCgKICAgICAgICAgICAgICAgICAgICAgICAgZiJ7bm9kZS5saW5lbm9967KIIOykhDogX19pbml0X18g7JWI7JeQ7ISc64qUIHJhdGUoKcK3c2xlZXAoKSDqsJnsnYAg64yA6riwIO2VqOyImOulvCDsk7gg7IiYIOyXhuyKteuLiOuLpC4g67OE64+EIOuplOyEnOuTnOuhnCDsmK7quLDshLjsmpQuIikKICAgICAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICAgICAgaWYgaWQobm9kZSkgaW4gc2VsZi5jbGFzc19vZl9tZXRob2QgYW5kIChub2RlLm5hbWUgaW4gU1lOQ19PTkxZX0RVTkRFUlMgb3IgX2lzX3Byb3BlcnR5KG5vZGUpKToKICAgICAgICAgICAgICAgICAgICBzZWxmLnN5bmNfb25seS5hZGQoaWQobm9kZSkpCiAgICAgICAgICAgICAgICAgICAgc2VsZi53YXJuaW5ncy5hcHBlbmQoCiAgICAgICAgICAgICAgICAgICAgICAgIGYie25vZGUubGluZW5vfeuyiCDspIQ6IHtub2RlLm5hbWV9KCkg6rCZ7J2AIO2KueyImCDrqZTshJzrk5zCt3Byb3BlcnR5IOyViOyXkOyEnOuKlCByYXRlKCnCt3NsZWVwKCkg6rCZ7J2AIOuMgOq4sCDtlajsiJjrpbwg7JO4IOyImCDsl4bsirXri4jri6QuIikKICAgICAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICAgICAgc2VsZi5hc3luY19ub2Rlcy5hZGQoaWQobm9kZSkpCiAgICAgICAgICAgICAgICBpZiBpZChub2RlKSBpbiBzZWxmLmNsYXNzX29mX21ldGhvZDoKICAgICAgICAgICAgICAgICAgICBzZWxmLmFzeW5jX21ldGhvZF9uYW1lcy5hZGQobm9kZS5uYW1lKQogICAgICAgICAgICAgICAgY2hhbmdlZCA9IFRydWUKICAgICAgICAjIO2VmeyDneydtCDsp4HsoJEg7JO0IGFzeW5jIGRlZiDrqZTshJzrk5wg7J2066aE64+EIOuvuO2ZleyglSDtjJDri6jsl5Ag7Y+s7ZWoCiAgICAgICAgZm9yIG5vZGUgaW4gc2VsZi5mdW5jdGlvbnM6CiAgICAgICAgICAgIGlmIGlkKG5vZGUpIGluIHNlbGYuYXN5bmNfbm9kZXMgYW5kIGlkKG5vZGUpIGluIHNlbGYuY2xhc3Nfb2ZfbWV0aG9kOgogICAgICAgICAgICAgICAgc2VsZi5hc3luY19tZXRob2RfbmFtZXMuYWRkKG5vZGUubmFtZSkKCiAgICBkZWYgaXNfYXN5bmNfZGVmKHNlbGYsIG5vZGUpOgogICAgICAgIHJldHVybiBpZChub2RlKSBpbiBzZWxmLmFzeW5jX25vZGVzIGFuZCBpZChub2RlKSBub3QgaW4gc2VsZi5zeW5jX29ubHkKCiAgICBkZWYgcmVnaXN0ZXJfcmVwbGFjZW1lbnQoc2VsZiwgb2xkLCBuZXcpOgogICAgICAgICIiIuuzgO2ZmOq4sOqwgCBkZWbrpbwgYXN5bmMgZGVmIOuFuOuTnOuhnCDrsJTqv4Ag65WMIOu2hOyEnSDqsrDqs7zrpbwg7IOIIOuFuOuTnOyXkOuPhCDsnofripTri6QuIiIiCiAgICAgICAgc2VsZi5hc3luY19ub2Rlcy5hZGQoaWQobmV3KSkKICAgICAgICBpZiBpZChvbGQpIGluIHNlbGYuZnVuY19zY29wZToKICAgICAgICAgICAgc2VsZi5mdW5jX3Njb3BlW2lkKG5ldyldID0gc2VsZi5mdW5jX3Njb3BlW2lkKG9sZCldCiAgICAgICAgICAgIHNlbGYuc2NvcGVfb2ZbaWQobmV3KV0gPSBzZWxmLnNjb3BlX29mW2lkKG9sZCldCiAgICAgICAgaWYgaWQob2xkKSBpbiBzZWxmLmNsYXNzX29mX21ldGhvZDoKICAgICAgICAgICAgc2VsZi5jbGFzc19vZl9tZXRob2RbaWQobmV3KV0gPSBzZWxmLmNsYXNzX29mX21ldGhvZFtpZChvbGQpXQoKCmRlZiBfaXNfcHJvcGVydHkoZnVuYyk6CiAgICAiIiJAcHJvcGVydHnCt0B4LnNldHRlcsK3QHguZ2V0dGVywrdAeC5kZWxldGVy6rCAIOu2meydgCDrqZTshJzrk5wiIiIKICAgIGZvciBkZWMgaW4gZnVuYy5kZWNvcmF0b3JfbGlzdDoKICAgICAgICBpZiBpc2luc3RhbmNlKGRlYywgYXN0Lk5hbWUpIGFuZCBkZWMuaWQgPT0gJ3Byb3BlcnR5JzoKICAgICAgICAgICAgcmV0dXJuIFRydWUKICAgICAgICBpZiBpc2luc3RhbmNlKGRlYywgYXN0LkF0dHJpYnV0ZSkgYW5kIGRlYy5hdHRyIGluICgnc2V0dGVyJywgJ2dldHRlcicsICdkZWxldGVyJyk6CiAgICAgICAgICAgIHJldHVybiBUcnVlCiAgICByZXR1cm4gRmFsc2UKCgpkZWYgX2NvbnRhaW5zX3lpZWxkKGZ1bmMpOgogICAgZm9yIGNoaWxkIGluIF9pdGVyX3Njb3BlKGZ1bmMpOgogICAgICAgIGlmIGlzaW5zdGFuY2UoY2hpbGQsIChhc3QuWWllbGQsIGFzdC5ZaWVsZEZyb20pKToKICAgICAgICAgICAgcmV0dXJuIFRydWUKICAgIHJldHVybiBGYWxzZQoKCmRlZiBfaXRlcl9zY29wZShub2RlKToKICAgICIiIuuFuOuTnCDslYTrnpjrpbwg7Iic7ZqM7ZWY65CYIOykkeyyqeuQnCDtlajsiJjCt+uejOuLpMK37YG0656Y7IqkIOyViOycvOuhnOuKlCDrk6TslrTqsIDsp4Ag7JWK64qU64ukLgogICAg642w7L2U66CI7J207YSwwrfquLDrs7gg7J247IiY64qUIOuwlOq5pSDsiqTsvZTtlITsl5Ag7IaN7ZWY66+A66GcIOykkeyyqSBkZWbsnZgg6re4IOu2gOu2hOydgCDtj6ztlajtlZzri6QuIiIiCiAgICBzdGFjayA9IGxpc3QoYXN0Lml0ZXJfY2hpbGRfbm9kZXMobm9kZSkpCiAgICB3aGlsZSBzdGFjazoKICAgICAgICBjaGlsZCA9IHN0YWNrLnBvcCgpCiAgICAgICAgeWllbGQgY2hpbGQKICAgICAgICBpZiBpc2luc3RhbmNlKGNoaWxkLCBfRlVOQ19OT0RFUyk6CiAgICAgICAgICAgIHN0YWNrLmV4dGVuZChjaGlsZC5kZWNvcmF0b3JfbGlzdCkKICAgICAgICAgICAgc3RhY2suZXh0ZW5kKGNoaWxkLmFyZ3MuZGVmYXVsdHMpCiAgICAgICAgICAgIHN0YWNrLmV4dGVuZChkIGZvciBkIGluIGNoaWxkLmFyZ3Mua3dfZGVmYXVsdHMgaWYgZCBpcyBub3QgTm9uZSkKICAgICAgICAgICAgY29udGludWUKICAgICAgICBpZiBpc2luc3RhbmNlKGNoaWxkLCBhc3QuTGFtYmRhKToKICAgICAgICAgICAgc3RhY2suZXh0ZW5kKGNoaWxkLmFyZ3MuZGVmYXVsdHMpCiAgICAgICAgICAgIHN0YWNrLmV4dGVuZChkIGZvciBkIGluIGNoaWxkLmFyZ3Mua3dfZGVmYXVsdHMgaWYgZCBpcyBub3QgTm9uZSkKICAgICAgICAgICAgY29udGludWUKICAgICAgICBpZiBpc2luc3RhbmNlKGNoaWxkLCBhc3QuQ2xhc3NEZWYpOgogICAgICAgICAgICBzdGFjay5leHRlbmQoY2hpbGQuZGVjb3JhdG9yX2xpc3QpCiAgICAgICAgICAgIHN0YWNrLmV4dGVuZChjaGlsZC5iYXNlcykKICAgICAgICAgICAgc3RhY2suZXh0ZW5kKGNoaWxkLmtleXdvcmRzKQogICAgICAgICAgICBjb250aW51ZQogICAgICAgIHN0YWNrLmV4dGVuZChhc3QuaXRlcl9jaGlsZF9ub2RlcyhjaGlsZCkpCgoKZGVmIF9pdGVyX3Njb3BlX2NhbGxzKG5vZGUpOgogICAgZm9yIGNoaWxkIGluIF9pdGVyX3Njb3BlKG5vZGUpOgogICAgICAgIGlmIGlzaW5zdGFuY2UoY2hpbGQsIGFzdC5DYWxsKToKICAgICAgICAgICAgeWllbGQgY2hpbGQKCgojID09PSDrs4DtmZggPT09CmNsYXNzIF9UcmFuc2Zvcm1lcihhc3QuTm9kZVRyYW5zZm9ybWVyKToKICAgICIiImFzeW5jIGRlZiDsoITtmZjqs7wgYXdhaXQg7IK97J6FLiDtmLjstpzsnZgg67aE66WY64qUIOq3uCDtmLjstpzsnbQg64aT7J24IOyKpOy9lO2UhOyXkOyEnCDtlZzri6QuIiIiCgogICAgZGVmIF9faW5pdF9fKHNlbGYsIGFuYWx5c2lzKToKICAgICAgICBzZWxmLmFuYWx5c2lzID0gYW5hbHlzaXMKICAgICAgICBzZWxmLnNjb3BlID0gYW5hbHlzaXMubW9kdWxlX3Njb3BlCiAgICAgICAgIyAoYXdhaXRhYmxlLCDrrLjrp6Ug7J2066aEKSDigJQg66qo65OIwrdhc3luYyDtlajsiJjripQgYXdhaXQg6rCA64qlCiAgICAgICAgc2VsZi5jb250ZXh0ID0gWyhUcnVlLCAnbW9kdWxlJyldCiAgICAgICAgc2VsZi5nZW5leHBfZGVwdGggPSAwCiAgICAgICAgc2VsZi5hbHJlYWR5X2F3YWl0ZWQgPSBzZXQoKQoKICAgIGRlZiBfZW50ZXJfc2NvcGUoc2VsZiwgbm9kZSk6CiAgICAgICAgcmV0dXJuIHNlbGYuYW5hbHlzaXMuc2NvcGVfb2ZbaWQobm9kZSldCgogICAgZGVmIF92aXNpdF9vdXRlcl9wYXJ0cyhzZWxmLCBub2RlKToKICAgICAgICBub2RlLmRlY29yYXRvcl9saXN0ID0gW3NlbGYudmlzaXQoZCkgZm9yIGQgaW4gbm9kZS5kZWNvcmF0b3JfbGlzdF0KICAgICAgICBub2RlLmFyZ3MuZGVmYXVsdHMgPSBbc2VsZi52aXNpdChkKSBmb3IgZCBpbiBub2RlLmFyZ3MuZGVmYXVsdHNdCiAgICAgICAgbm9kZS5hcmdzLmt3X2RlZmF1bHRzID0gW3NlbGYudmlzaXQoZCkgaWYgZCBpcyBub3QgTm9uZSBlbHNlIE5vbmUgZm9yIGQgaW4gbm9kZS5hcmdzLmt3X2RlZmF1bHRzXQogICAgICAgIGlmIGdldGF0dHIobm9kZSwgJ3JldHVybnMnLCBOb25lKSBpcyBub3QgTm9uZToKICAgICAgICAgICAgbm9kZS5yZXR1cm5zID0gc2VsZi52aXNpdChub2RlLnJldHVybnMpCgogICAgZGVmIF92aXNpdF9ib2R5KHNlbGYsIG5vZGUsIGF3YWl0YWJsZSwgbGFiZWwpOgogICAgICAgIHNhdmVkX3Njb3BlLCBzZWxmLnNjb3BlID0gc2VsZi5zY29wZSwgc2VsZi5fZW50ZXJfc2NvcGUobm9kZSkKICAgICAgICBzZWxmLmNvbnRleHQuYXBwZW5kKChhd2FpdGFibGUsIGxhYmVsKSkKICAgICAgICBub2RlLmJvZHkgPSBbc2VsZi52aXNpdChzdG10KSBmb3Igc3RtdCBpbiBub2RlLmJvZHldCiAgICAgICAgc2VsZi5jb250ZXh0LnBvcCgpCiAgICAgICAgc2VsZi5zY29wZSA9IHNhdmVkX3Njb3BlCgogICAgZGVmIHZpc2l0X0Z1bmN0aW9uRGVmKHNlbGYsIG5vZGUpOgogICAgICAgIHNlbGYuX3Zpc2l0X291dGVyX3BhcnRzKG5vZGUpCiAgICAgICAgbWFrZV9hc3luYyA9IHNlbGYuYW5hbHlzaXMuaXNfYXN5bmNfZGVmKG5vZGUpCiAgICAgICAgc2VsZi5fdmlzaXRfYm9keShub2RlLCBtYWtlX2FzeW5jLCAnYXN5bmMnIGlmIG1ha2VfYXN5bmMgZWxzZSAnc3luYycpCiAgICAgICAgaWYgbm90IG1ha2VfYXN5bmM6CiAgICAgICAgICAgIHJldHVybiBub2RlCiAgICAgICAgbmV3ID0gYXN0LkFzeW5jRnVuY3Rpb25EZWYoCiAgICAgICAgICAgIG5hbWU9bm9kZS5uYW1lLCBhcmdzPW5vZGUuYXJncywgYm9keT1ub2RlLmJvZHksIGRlY29yYXRvcl9saXN0PW5vZGUuZGVjb3JhdG9yX2xpc3QsCiAgICAgICAgICAgIHJldHVybnM9bm9kZS5yZXR1cm5zLCB0eXBlX2NvbW1lbnQ9Z2V0YXR0cihub2RlLCAndHlwZV9jb21tZW50JywgTm9uZSksCiAgICAgICAgKQogICAgICAgIGlmIGhhc2F0dHIobm9kZSwgJ3R5cGVfcGFyYW1zJyk6CiAgICAgICAgICAgIG5ldy50eXBlX3BhcmFtcyA9IG5vZGUudHlwZV9wYXJhbXMKICAgICAgICAjIO2BtOuemOyKpCDrs7jrrLjsl5DshJwg67CU64CQIOuplOyEnOuTnCDrhbjrk5zrpbwg65Kk7JeQIOyYpOuKlCDtmLjstpzsnZgg67aE66WYKF9maW5kX21ldGhvZCnqsIAg64uk7IucIOywvuydhCDsiJgg7J6I6rKMIOuTseuhnQogICAgICAgIHNlbGYuYW5hbHlzaXMucmVnaXN0ZXJfcmVwbGFjZW1lbnQobm9kZSwgbmV3KQogICAgICAgIHJldHVybiBhc3QuY29weV9sb2NhdGlvbihuZXcsIG5vZGUpCgogICAgZGVmIHZpc2l0X0FzeW5jRnVuY3Rpb25EZWYoc2VsZiwgbm9kZSk6CiAgICAgICAgc2VsZi5fdmlzaXRfb3V0ZXJfcGFydHMobm9kZSkKICAgICAgICBzZWxmLl92aXNpdF9ib2R5KG5vZGUsIFRydWUsICdhc3luYycpCiAgICAgICAgcmV0dXJuIG5vZGUKCiAgICBkZWYgdmlzaXRfTGFtYmRhKHNlbGYsIG5vZGUpOgogICAgICAgIG5vZGUuYXJncy5kZWZhdWx0cyA9IFtzZWxmLnZpc2l0KGQpIGZvciBkIGluIG5vZGUuYXJncy5kZWZhdWx0c10KICAgICAgICBub2RlLmFyZ3Mua3dfZGVmYXVsdHMgPSBbc2VsZi52aXNpdChkKSBpZiBkIGlzIG5vdCBOb25lIGVsc2UgTm9uZSBmb3IgZCBpbiBub2RlLmFyZ3Mua3dfZGVmYXVsdHNdCiAgICAgICAgc2F2ZWRfc2NvcGUsIHNlbGYuc2NvcGUgPSBzZWxmLnNjb3BlLCBzZWxmLl9lbnRlcl9zY29wZShub2RlKQogICAgICAgIHNlbGYuY29udGV4dC5hcHBlbmQoKEZhbHNlLCAnbGFtYmRhJykpCiAgICAgICAgbm9kZS5ib2R5ID0gc2VsZi52aXNpdChub2RlLmJvZHkpCiAgICAgICAgc2VsZi5jb250ZXh0LnBvcCgpCiAgICAgICAgc2VsZi5zY29wZSA9IHNhdmVkX3Njb3BlCiAgICAgICAgcmV0dXJuIG5vZGUKCiAgICBkZWYgdmlzaXRfQ2xhc3NEZWYoc2VsZiwgbm9kZSk6CiAgICAgICAgbm9kZS5kZWNvcmF0b3JfbGlzdCA9IFtzZWxmLnZpc2l0KGQpIGZvciBkIGluIG5vZGUuZGVjb3JhdG9yX2xpc3RdCiAgICAgICAgbm9kZS5iYXNlcyA9IFtzZWxmLnZpc2l0KGIpIGZvciBiIGluIG5vZGUuYmFzZXNdCiAgICAgICAgbm9kZS5rZXl3b3JkcyA9IFtzZWxmLnZpc2l0KGspIGZvciBrIGluIG5vZGUua2V5d29yZHNdCiAgICAgICAgc2VsZi5fdmlzaXRfYm9keShub2RlLCBGYWxzZSwgJ2NsYXNzJykKICAgICAgICByZXR1cm4gbm9kZQoKICAgIGRlZiB2aXNpdF9HZW5lcmF0b3JFeHAoc2VsZiwgbm9kZSk6CiAgICAgICAgc2VsZi5nZW5leHBfZGVwdGggKz0gMQogICAgICAgIHNlbGYuZ2VuZXJpY192aXNpdChub2RlKQogICAgICAgIHNlbGYuZ2VuZXhwX2RlcHRoIC09IDEKICAgICAgICByZXR1cm4gbm9kZQoKICAgIGRlZiB2aXNpdF9Bd2FpdChzZWxmLCBub2RlKToKICAgICAgICBpZiBpc2luc3RhbmNlKG5vZGUudmFsdWUsIGFzdC5DYWxsKToKICAgICAgICAgICAgc2VsZi5hbHJlYWR5X2F3YWl0ZWQuYWRkKGlkKG5vZGUudmFsdWUpKQogICAgICAgIHNlbGYuZ2VuZXJpY192aXNpdChub2RlKQogICAgICAgIHJldHVybiBub2RlCgogICAgZGVmIHZpc2l0X0NhbGwoc2VsZiwgbm9kZSk6CiAgICAgICAgc2VsZi5nZW5lcmljX3Zpc2l0KG5vZGUpCiAgICAgICAgaWYgaWQobm9kZSkgaW4gc2VsZi5hbHJlYWR5X2F3YWl0ZWQ6CiAgICAgICAgICAgIHJldHVybiBub2RlCiAgICAgICAga2luZCA9IHNlbGYuYW5hbHlzaXMuY2xhc3NpZnlfY2FsbChub2RlLCBzZWxmLnNjb3BlKQogICAgICAgIGlmIGtpbmQgPT0gQ0VSVEFJTl9TWU5DOgogICAgICAgICAgICByZXR1cm4gbm9kZQogICAgICAgIGF3YWl0YWJsZSwgbGFiZWwgPSBzZWxmLmNvbnRleHRbLTFdCiAgICAgICAgbWF5YmUgPSAnJyBpZiBraW5kID09IENFUlRBSU5fQVNZTkMgZWxzZSAnICjrjIDquLAg7ZWo7IiY66W8IOu2gOulvCDsiJgg7J6I64qUIO2YuOy2nCknCiAgICAgICAgaWYgc2VsZi5nZW5leHBfZGVwdGg6CiAgICAgICAgICAgIHNlbGYuYW5hbHlzaXMud2FybmluZ3MuYXBwZW5kKAogICAgICAgICAgICAgICAgZiJ7bm9kZS5saW5lbm9967KIIOykhDog7KCc64SI66CI7J207YSw7IudIOyViOyXkOyEnOuKlCB7X2xhYmVsKG5vZGUpfSgpe21heWJlfeydhCDquLDri6TrprQg7IiYIOyXhuyKteuLiOuLpC4gZm9yIOusuOydtOuCmCDrpqzsiqTtirgg7Lu07ZSE66as7Zeo7IWY7Jy866GcIOuwlOq+uOyEuOyalC4iKQogICAgICAgICAgICByZXR1cm4gbm9kZQogICAgICAgIGlmIG5vdCBhd2FpdGFibGU6CiAgICAgICAgICAgIGlmIGxhYmVsID09ICdsYW1iZGEnOgogICAgICAgICAgICAgICAgc2VsZi5hbmFseXNpcy53YXJuaW5ncy5hcHBlbmQoCiAgICAgICAgICAgICAgICAgICAgZiJ7bm9kZS5saW5lbm9967KIIOykhDogbGFtYmRhIOyViOydmCB7X2xhYmVsKG5vZGUpfSgpe21heWJlfeydgCDquLDri6TrprQg7IiYIOyXhuyKteuLiOuLpC4gZGVm66GcIOuwlOq+uOyEuOyalC4iKQogICAgICAgICAgICBlbGlmIGxhYmVsID09ICdjbGFzcyc6CiAgICAgICAgICAgICAgICBzZWxmLmFuYWx5c2lzLndhcm5pbmdzLmFwcGVuZCgKICAgICAgICAgICAgICAgICAgICBmIntub2RlLmxpbmVub33rsogg7KSEOiDtgbTrnpjsiqQg67O466y47JeQ7ISc64qUIHtfbGFiZWwobm9kZSl9KCl7bWF5YmV97J2EIOq4sOuLpOumtCDsiJgg7JeG7Iq164uI64ukLiDrqZTshJzrk5wg7JWI7Jy866GcIOyYruq4sOyEuOyalC4iKQogICAgICAgICAgICAjIHN5bmMo7IOd7ISx6riwwrdfX2luaXRfX8K37Yq57IiYIOuplOyEnOuTnCnripQgbWFya19hc3luY+yXkOyEnCDsnbTrr7gg6rK96rOg7ZaI64ukCiAgICAgICAgICAgIHJldHVybiBub2RlCiAgICAgICAgaWYga2luZCA9PSBDRVJUQUlOX0FTWU5DOgogICAgICAgICAgICByZXR1cm4gYXN0LmNvcHlfbG9jYXRpb24oYXN0LkF3YWl0KHZhbHVlPW5vZGUpLCBub2RlKQogICAgICAgIGhlbHBlciA9IGFzdC5BdHRyaWJ1dGUodmFsdWU9YXN0Lk5hbWUoaWQ9UlVOVElNRV9OQU1FLCBjdHg9YXN0LkxvYWQoKSksIGF0dHI9J21heWJlX2F3YWl0JywgY3R4PWFzdC5Mb2FkKCkpCiAgICAgICAgd3JhcHBlZCA9IGFzdC5DYWxsKGZ1bmM9aGVscGVyLCBhcmdzPVtub2RlXSwga2V5d29yZHM9W10pCiAgICAgICAgcmV0dXJuIGFzdC5jb3B5X2xvY2F0aW9uKGFzdC5Bd2FpdCh2YWx1ZT13cmFwcGVkKSwgbm9kZSkKCgpkZWYgX2xhYmVsKGNhbGwpOgogICAgdHJ5OgogICAgICAgIHJldHVybiBhc3QudW5wYXJzZShjYWxsLmZ1bmMpCiAgICBleGNlcHQgRXhjZXB0aW9uOgogICAgICAgIHJldHVybiAn64yA6riwIO2VqOyImCcKCgpkZWYgdHJhbnNmb3JtX3N0dWRlbnRfY29kZShzb3VyY2UsIGZpbGVuYW1lPSc8c3R1ZGVudD4nKToKICAgICIiIu2VmeyDnSDsvZTrk5zrpbwg67OA7ZmY7ZWcIGFzdC5Nb2R1bGXqs7wg6rK96rOgIOuqqeuhneydhCDrj4zroKTspIDri6QuIFN5bnRheEVycm9y64qUIOq3uOuMgOuhnCDsmKzrnbzqsITri6QuIiIiCiAgICB0cmVlID0gYXN0LnBhcnNlKHNvdXJjZSwgZmlsZW5hbWU9ZmlsZW5hbWUsIHR5cGVfY29tbWVudHM9RmFsc2UpCiAgICBhbmFseXNpcyA9IF9BbmFseXNpcyh0cmVlKQogICAgYW5hbHlzaXMubWFya19hc3luYygpCiAgICB0cmVlID0gX1RyYW5zZm9ybWVyKGFuYWx5c2lzKS52aXNpdCh0cmVlKQogICAgYXN0LmZpeF9taXNzaW5nX2xvY2F0aW9ucyh0cmVlKQogICAgcmV0dXJuIHRyZWUsIGFuYWx5c2lzLndhcm5pbmdzCgoKZGVmIGNvbXBpbGVfc3R1ZGVudF9jb2RlKHNvdXJjZSwgZmlsZW5hbWU9JzxzdHVkZW50PicpOgogICAgIiIi67OA7ZmYIOuSpCDstZzsg4HsnIQgYXdhaXTrpbwg7ZeI7Jqp7ZW0IOy7tO2MjOydvO2VnCDsvZTrk5wg6rCd7LK07JmAIOqyveqzoCDrqqnroZ0iIiIKICAgIHRyZWUsIHdhcm5pbmdzID0gdHJhbnNmb3JtX3N0dWRlbnRfY29kZShzb3VyY2UsIGZpbGVuYW1lKQogICAgY29kZSA9IGNvbXBpbGUodHJlZSwgZmlsZW5hbWUsICdleGVjJywgZmxhZ3M9YXN0LlB5Q0ZfQUxMT1dfVE9QX0xFVkVMX0FXQUlULCBkb250X2luaGVyaXQ9VHJ1ZSkKICAgIHJldHVybiBjb2RlLCB3YXJuaW5ncwoKCmRlZiB1bnBhcnNlX3N0dWRlbnRfY29kZShzb3VyY2UpOgogICAgIiIi7YWM7Iqk7Yq4wrfrlJTrsoTquYXsmqk6IOuzgO2ZmOuQnCDsvZTrk5zrpbwg66y47J6Q7Je066GcIChQeXRob24gMy45IOydtOyDgSkiIiIKICAgIHRyZWUsIHdhcm5pbmdzID0gdHJhbnNmb3JtX3N0dWRlbnRfY29kZShzb3VyY2UpCiAgICByZXR1cm4gYXN0LnVucGFyc2UodHJlZSksIHdhcm5pbmdzCg==')));
+    pyodide.globals.set('__vpylab_source__', filtered);
+    pyodide.globals.set('__vpylab_transform_source__', transformSrc);
+    const runner = [
+      'import types as _vpylab_types, inspect as _vpylab_inspect',
+      '_vpylab_transform = _vpylab_types.ModuleType("_vpylab_transform")',
+      'exec(compile(__vpylab_transform_source__, "<vpylab-transform>", "exec"), _vpylab_transform.__dict__)',
+      '_vpylab_code, _vpylab_warnings = _vpylab_transform.compile_student_code(__vpylab_source__, "<student>")',
+      'for _vpylab_w in _vpylab_warnings:',
+      '    print("⚠️ " + _vpylab_w)',
+      '_vpylab_ns = {"__name__": "__main__"}',
+      '_vpylab_ns.update({_k: _v for _k, _v in globals().items() if not _k.startswith("_")})',
+      '_vpylab_ns[_vpylab_transform.RUNTIME_NAME] = _vpylab_transform',
+      '_vpylab_result = eval(_vpylab_code, _vpylab_ns)',
+      'if _vpylab_inspect.iscoroutine(_vpylab_result):',
+      '    await _vpylab_result',
+    ].join('\n');
+
+    try {
+      await pyodide.runPythonAsync(runner);
+      await pyodide.runPythonAsync('_send_commands()');
+    } catch (e) {
+      console.error(e);
+      logToConsole('오류: ' + (e.message || e.type || String(e)));
+    }
+  }
+
+  // VPython API (인라인 — vpython-api.py와 동기화)
+  const vpythonApi = `
+import json
+import asyncio
+import math
+from math import *
+
+_command_buffer = []
+_object_counter = 0
+
+def _send_commands():
+    global _command_buffer
+    if _command_buffer:
+        _js_process_batch(json.dumps({"type": "batch", "commands": _command_buffer}))
+        _command_buffer = []
+
+def _add_command(cmd):
+    _command_buffer.append(cmd)
+
+def _new_id():
+    global _object_counter
+    _object_counter += 1
+    return f"obj_{_object_counter}"
+
+
+# === vector 클래스 ===
+class vector:
+    def __init__(self, x=0, y=0, z=0):
+        self._change_callback = None
+        if isinstance(x, vector): x, y, z = x.x, x.y, x.z
+        elif isinstance(x, (list, tuple)) and len(x)==3: x, y, z = x
+        self._x = float(x); self._y = float(y); self._z = float(z)
+    @property
+    def x(self): return self._x
+    @x.setter
+    def x(self,v):
+        self._x=float(v)
+        if self._change_callback: self._change_callback()
+    @property
+    def y(self): return self._y
+    @y.setter
+    def y(self,v):
+        self._y=float(v)
+        if self._change_callback: self._change_callback()
+    @property
+    def z(self): return self._z
+    @z.setter
+    def z(self,v):
+        self._z=float(v)
+        if self._change_callback: self._change_callback()
+    def __repr__(self): return f"<{self.x:.4g}, {self.y:.4g}, {self.z:.4g}>"
+    def __add__(self, o): return vector(self.x+o.x, self.y+o.y, self.z+o.z)
+    def __sub__(self, o): return vector(self.x-o.x, self.y-o.y, self.z-o.z)
+    def __mul__(self, s):
+        if isinstance(s,(int,float)): return vector(self.x*s, self.y*s, self.z*s)
+        return NotImplemented
+    def __rmul__(self, s): return self.__mul__(s)
+    def __truediv__(self, s): return vector(self.x/s, self.y/s, self.z/s)
+    def __neg__(self): return vector(-self.x, -self.y, -self.z)
+    def __eq__(self, o):
+        if not isinstance(o, vector): return NotImplemented
+        return self.x==o.x and self.y==o.y and self.z==o.z
+    def __ne__(self, o):
+        e = self.__eq__(o)
+        return NotImplemented if e is NotImplemented else not e
+    def __hash__(self): return hash((self.x, self.y, self.z))
+    @property
+    def mag(self): return (self.x**2 + self.y**2 + self.z**2)**0.5
+    @property
+    def mag2(self): return self.x**2 + self.y**2 + self.z**2
+    @property
+    def hat(self):
+        m = self.mag
+        return self/m if m else vector(0,0,0)
+    def dot(self, o): return self.x*o.x + self.y*o.y + self.z*o.z
+    def cross(self, o): return vector(self.y*o.z-self.z*o.y, self.z*o.x-self.x*o.z, self.x*o.y-self.y*o.x)
+    def to_list(self): return [self.x, self.y, self.z]
+    def clone(self): return vector(self.x, self.y, self.z)
+    def proj(self, b): bh = b.hat; return bh * self.dot(bh)
+    def comp(self, b): return self.dot(b.hat)
+    def diff_angle(self, b):
+        import math
+        m1=self.mag; m2=b.mag
+        if m1==0 or m2==0: return 0.0
+        c = self.dot(b)/(m1*m2)
+        if c>1.0: c=1.0
+        elif c<-1.0: c=-1.0
+        return math.acos(c)
+    def rotate(self, angle, axis=None):
+        import math
+        if axis is None: axis = vector(0,0,1)
+        k = axis.hat
+        ca = math.cos(angle); sa = math.sin(angle)
+        v = self
+        return v*ca + k.cross(v)*sa + k*(k.dot(v)*(1-ca))
+
+vec = vector
+
+# === 30색 팔레트 ===
+class _GrayColor(vector):
+    # color.gray는 회색 벡터이면서 color.gray(0.2)처럼 밝기를 지정할 수도 있다 (편집기와 같은 동작)
+    def __call__(self, level):
+        level = float(level)
+        return vector(level, level, level)
+
+class _ColorPalette:
+    red=vector(1,0,0); green=vector(0,1,0); blue=vector(0,0,1)
+    yellow=vector(1,1,0); cyan=vector(0,1,1); magenta=vector(1,0,1)
+    orange=vector(1,0.6,0); white=vector(1,1,1); black=vector(0,0,0)
+    gray=_GrayColor(0.5,0.5,0.5); purple=vector(0.4,0.2,0.6)
+    pink=vector(1,0.75,0.8); brown=vector(0.6,0.3,0.1); gold=vector(1,0.84,0)
+    silver=vector(0.75,0.75,0.75); navy=vector(0,0,0.5); skyblue=vector(0.53,0.81,0.92)
+    lime=vector(0.5,1,0); olive=vector(0.5,0.5,0); coral=vector(1,0.5,0.31)
+    salmon=vector(0.98,0.5,0.45); violet=vector(0.56,0,1); indigo=vector(0.29,0,0.51)
+    beige=vector(0.96,0.96,0.86); mint=vector(0.6,1,0.8); peach=vector(1,0.85,0.73)
+    lavender=vector(0.71,0.49,0.86); maroon=vector(0.5,0,0); teal=vector(0,0.5,0.5)
+    ivory=vector(1,1,0.94)
+    _name_map = {
+        '빨':'red','빨강':'red','빨간':'red','초':'green','초록':'green','녹':'green','녹색':'green',
+        '파':'blue','파랑':'blue','파란':'blue','노':'yellow','노랑':'yellow','노란':'yellow',
+        '하늘':'skyblue','하늘색':'skyblue','청록':'cyan','시안':'cyan','자홍':'magenta','마젠타':'magenta',
+        '주':'orange','주황':'orange','주황색':'orange','흰':'white','흰색':'white','하양':'white','하얀':'white',
+        '검':'black','검정':'black','까만':'black','검은':'black','회':'gray','회색':'gray',
+        '보':'purple','보라':'purple','보라색':'purple','분':'pink','분홍':'pink','핑크':'pink',
+        '갈':'brown','갈색':'brown','금':'gold','금색':'gold','황금':'gold',
+        '은':'silver','은색':'silver','남':'navy','남색':'navy','연두':'lime','라임':'lime',
+        '올리브':'olive','산호':'coral','코랄':'coral','연어':'salmon','살몬':'salmon',
+        '보랏빛':'violet','바이올렛':'violet','남보라':'indigo','인디고':'indigo',
+        '베이지':'beige','민트':'mint','살구':'peach','복숭아':'peach','피치':'peach',
+        '라벤더':'lavender','적갈':'maroon','밤색':'maroon','청록색':'teal','틸':'teal',
+        '상아':'ivory','아이보리':'ivory',
+    }
+    def __getitem__(self, key):
+        if key in self._name_map: return getattr(self, self._name_map[key])
+        if hasattr(self, key) and not key.startswith('_'): return getattr(self, key)
+        raise KeyError(f"'{key}' 색상을 찾을 수 없습니다")
+    def __repr__(self): return "<색상 팔레트 30색>"
+
+color = _ColorPalette()
+색상 = color
+
+
+# 위치는 입력 벡터를 복사하고, 성분 수정 시 같은 벡터에서 갱신합니다.
+def _bind_position(owner, value, notify=True):
+    if hasattr(owner, '_pos'):
+        owner._pos._change_callback = None
+    owner._pos = value.clone()
+    def changed():
+        pos = owner._pos.to_list()
+        _add_command({'action':'update','id':owner._id,'pos':pos})
+        if getattr(owner, '_make_trail', False):
+            _add_command({'action':'trail_update','id':owner._id,'pos':pos})
+    owner._pos._change_callback = changed
+    if notify: changed()
+
+# === 3D 객체 베이스 클래스 ===
+class _GObject:
+    def __init__(self, obj_type, **kwargs):
+        self._id = _new_id()
+        self._type = obj_type
+        self._make_trail = kwargs.pop('make_trail', False)
+        self._trail_color = kwargs.pop('trail_color', None)
+        _bind_position(self, kwargs.get('pos', vector(0,0,0)), False)
+        self._color = kwargs.get('color', color.white)
+        self._visible = kwargs.get('visible', True)
+        self._opacity = kwargs.get('opacity', 1.0)
+        self._emissive = kwargs.get('emissive', False)
+        self._velocity = kwargs.get('velocity', vector(0,0,0))
+        _add_command({
+            "action":"create","id":self._id,"type":obj_type,
+            "pos":self._pos.to_list(),"color":self._color.to_list(),
+            "visible":self._visible,"opacity":self._opacity,
+            "make_trail":self._make_trail,
+            "trail_color":self._trail_color.to_list() if self._trail_color else None,
+            **{k:v for k,v in kwargs.items() if k not in ('pos','color','visible','opacity','velocity') and isinstance(v,(int,float,bool,str))},
+            **{k:v.to_list() for k,v in kwargs.items() if k not in ('pos','color','visible','opacity','velocity') and isinstance(v,vector)},
+            **{k:list(v) for k,v in kwargs.items() if k not in ('pos','color','visible','opacity','velocity') and isinstance(v,(list,tuple))},
+        })
+    @property
+    def pos(self): return self._pos
+    @pos.setter
+    def pos(self, v):
+        _bind_position(self, v)
+    @property
+    def color(self): return self._color
+    @color.setter
+    def color(self, v):
+        self._color = v
+        _add_command({"action":"update","id":self._id,"color":v.to_list()})
+    @property
+    def visible(self): return self._visible
+    @visible.setter
+    def visible(self, v):
+        self._visible = v
+        _add_command({"action":"update","id":self._id,"visible":v})
+    @property
+    def velocity(self): return self._velocity
+    @velocity.setter
+    def velocity(self, v): self._velocity = v
+    @property
+    def opacity(self): return self._opacity
+    @opacity.setter
+    def opacity(self, v):
+        self._opacity = v
+        _add_command({"action":"update","id":self._id,"opacity":v})
+    @property
+    def emissive(self): return self._emissive
+    @emissive.setter
+    def emissive(self, v):
+        self._emissive = v
+        _add_command({"action":"update","id":self._id,"emissive":v})
+
+    # === v3 공통 메서드 ===
+    def _clone_kwargs(self):
+        return {
+            'pos': self._pos.clone() if isinstance(self._pos, vector) else self._pos,
+            'color': self._color.clone() if isinstance(self._color, vector) else self._color,
+            'visible': self._visible, 'opacity': self._opacity, 'emissive': self._emissive,
+        }
+    def clone(self, **kwargs):
+        args = self._clone_kwargs(); args.update(kwargs)
+        return self.__class__(**args)
+    def rotate(self, angle, axis=None, origin=None):
+        if axis is None: axis = vector(0,1,0)
+        if origin is None: origin = self._pos
+        rel = self._pos - origin
+        new_rel = rel.rotate(angle, axis=axis)
+        self.pos = origin + new_rel
+        if hasattr(self, '_axis') and isinstance(self._axis, vector):
+            self.axis = self._axis.rotate(angle, axis=axis)
+    def clear_trail(self):
+        _add_command({"action":"trail_clear","id":self._id})
+    def attach_trail(self, color=None, retain=10000):
+        self._make_trail = True
+        if color is not None: self._trail_color = color
+        _add_command({"action":"trail_attach","id":self._id,
+                      "trail_color": color.to_list() if isinstance(color, vector) else None,
+                      "pos": self._pos.to_list(), "retain": int(retain)})
+
+
+class sphere(_GObject):
+    def __init__(self, **kw):
+        self._radius = kw.pop('radius', 1.0)
+        super().__init__('sphere', radius=self._radius, **kw)
+    @property
+    def radius(self): return self._radius
+    @radius.setter
+    def radius(self, v):
+        self._radius = v
+        _add_command({"action":"update","id":self._id,"radius":v})
+
+class box(_GObject):
+    _geometry_type = 'box'
+    def __init__(self, **kw):
+        _sz = kw.pop('size', None)
+        if _sz is None:
+            _sz = vector(kw.pop('length', 1), kw.pop('height', 1), kw.pop('width', 1))
+        else:
+            kw.pop('length', None); kw.pop('height', None); kw.pop('width', None)
+        self._size = _sz
+        self._axis = kw.pop('axis', None)
+        self._up = kw.pop('up', None)
+        _extra = {}
+        if self._axis is not None: _extra['axis'] = self._axis.to_list() if isinstance(self._axis,vector) else self._axis
+        if self._up is not None: _extra['up'] = self._up.to_list() if isinstance(self._up,vector) else self._up
+        super().__init__(self._geometry_type, size=self._size.to_list() if isinstance(self._size,vector) else self._size, **_extra, **kw)
+    @property
+    def axis(self): return self._axis
+    @axis.setter
+    def axis(self, v):
+        self._axis = v
+        _add_command({"action":"update","id":self._id,"axis":v.to_list() if isinstance(v,vector) else v})
+    @property
+    def up(self): return self._up
+    @up.setter
+    def up(self, v):
+        self._up = v
+        _add_command({"action":"update","id":self._id,"up":v.to_list() if isinstance(v,vector) else v})
+    @property
+    def size(self): return self._size
+    @size.setter
+    def size(self, v):
+        self._size = v
+        s = v.to_list() if isinstance(v,vector) else v
+        _add_command({"action":"update","id":self._id,"size":s})
+
+class cylinder(_GObject):
+    def __init__(self, **kw):
+        self._radius = kw.pop('radius', 1.0)
+        self._axis = kw.pop('axis', vector(1,0,0))
+        super().__init__('cylinder', radius=self._radius, axis=self._axis.to_list(), **kw)
+    @property
+    def radius(self): return self._radius
+    @radius.setter
+    def radius(self, v):
+        self._radius = v
+        _add_command({"action":"update","id":self._id,"radius":v})
+    @property
+    def axis(self): return self._axis
+    @axis.setter
+    def axis(self, v):
+        self._axis = v
+        _add_command({"action":"update","id":self._id,"axis":v.to_list()})
+
+class arrow(_GObject):
+    def __init__(self, **kw):
+        self._axis = kw.pop('axis', vector(1,0,0))
+        self._shaftwidth = kw.pop('shaftwidth', 0.1)
+        super().__init__('arrow', axis=self._axis.to_list(), shaftwidth=self._shaftwidth, **kw)
+    @property
+    def axis(self): return self._axis
+    @axis.setter
+    def axis(self, v):
+        self._axis = v
+        _add_command({"action":"update","id":self._id,"axis":v.to_list()})
+    @property
+    def shaftwidth(self): return self._shaftwidth
+    @shaftwidth.setter
+    def shaftwidth(self, v):
+        self._shaftwidth = v
+        _add_command({"action":"update","id":self._id,"shaftwidth":v})
+
+class cone(_GObject):
+    def __init__(self, **kw):
+        self._radius = kw.pop('radius', 1.0)
+        self._axis = kw.pop('axis', vector(1,0,0))
+        super().__init__('cone', radius=self._radius, axis=self._axis.to_list(), **kw)
+    @property
+    def radius(self): return self._radius
+    @radius.setter
+    def radius(self, v):
+        self._radius = v
+        _add_command({"action":"update","id":self._id,"radius":v})
+    @property
+    def axis(self): return self._axis
+    @axis.setter
+    def axis(self, v):
+        self._axis = v
+        _add_command({"action":"update","id":self._id,"axis":v.to_list()})
+
+class ring(_GObject):
+    def __init__(self, **kw):
+        self._axis = kw.pop('axis', vector(1,0,0))
+        self._radius = kw.pop('radius', 1.0)
+        self._thickness = kw.pop('thickness', 0.1)
+        super().__init__('ring', radius=self._radius, thickness=self._thickness, axis=self._axis.to_list(), **kw)
+    @property
+    def axis(self): return self._axis
+    @axis.setter
+    def axis(self, v):
+        self._axis = v
+        _add_command({'action':'update','id':self._id,'axis':v.to_list()})
+    @property
+    def radius(self): return self._radius
+    @radius.setter
+    def radius(self, v):
+        self._radius = v
+        _add_command({"action":"update","id":self._id,"radius":v})
+    @property
+    def thickness(self): return self._thickness
+    @thickness.setter
+    def thickness(self, v):
+        self._thickness = v
+        _add_command({"action":"update","id":self._id,"thickness":v})
+
+
+    def _clone_kwargs(self):
+        return {**super()._clone_kwargs(), 'radius':self._radius, 'thickness':self._thickness, 'axis':self._axis.clone()}
+
+
+# === compound (복합 객체) ===
+class compound:
+    def __init__(self, objects, **kw):
+        self._id = _new_id()
+        self._objects = list(objects)
+        _send_commands()
+        bounds = json.loads(str(_js_compound_bounds(json.dumps([o._id for o in self._objects]))))
+        self._center0 = vector(*bounds['center'])
+        self._size0 = vector(*bounds['size'])
+        _bind_position(self, kw.get('pos', self._center0), False)
+        axis = kw.get('axis', vector(1,0,0))
+        self._axis = (axis.hat if axis.mag else vector(1,0,0)) * self._size0.x
+        self._up = kw.get('up', vector(0,1,0))
+        self._set_color(kw.get('color') or color.white)
+        self._visible = kw.get('visible', True)
+        self._opacity = self._check_unit(kw.get('opacity',1.0),'opacity')
+        self._shininess = self._check_unit(kw.get('shininess',0.6),'shininess')
+        self._emissive = bool(kw.get('emissive',False))
+        self._make_trail = kw.pop('make_trail', False)
+        self._trail_color = kw.pop('trail_color', None)
+        cmd = {
+            "action":"compound","id":self._id,
+            "sub_ids":[obj._id for obj in self._objects],
+            "center":self._center0.to_list(), "axis":self._axis.to_list(), "up":self._up.to_list(),
+            "pos":self._pos.to_list(),
+            "color":self._color.to_list() if self._color else None,
+            "visible":self._visible,"opacity":self._opacity,
+            "make_trail":self._make_trail,
+            "trail_color":self._trail_color.to_list() if self._trail_color else None,
+        }
+        if 'shininess' in kw: cmd['shininess']=self._shininess
+        if 'emissive' in kw: cmd['emissive']=bool(kw['emissive'])
+        _add_command(cmd)
+    @property
+    def axis(self): return self._axis
+    @axis.setter
+    def axis(self,v):
+        self._axis=v.clone()
+        _add_command({'action':'update','id':self._id,'axis':self._axis.to_list()})
+    @property
+    def up(self): return self._up
+    @up.setter
+    def up(self,v):
+        self._up=v.clone()
+        _add_command({'action':'update','id':self._id,'up':self._up.to_list()})
+    def rotate(self,angle,axis=None,origin=None):
+        axis=axis if axis is not None else self._axis
+        origin=origin if origin is not None else self._pos
+        self.pos=origin+(self._pos-origin).rotate(angle,axis=axis)
+        self.axis=self._axis.rotate(angle,axis=axis)
+        self.up=self._up.rotate(angle,axis=axis)
+
+    @staticmethod
+    def _check_unit(v,name):
+        import math
+        v=float(v)
+        if not math.isfinite(v) or not 0<=v<=1: raise ValueError('compound.'+name+' must be between 0 and 1')
+        return v
+    def _set_color(self,v):
+        self._color=vector(v.x,v.y,v.z)
+        self._color._change_callback=lambda: _add_command({'action':'update','id':self._id,'color':self._color.to_list()})
+    def __getitem__(self, i): return self._objects[i]
+    def __len__(self): return len(self._objects)
+    @property
+    def pos(self): return self._pos
+    @pos.setter
+    def pos(self, v):
+        _bind_position(self, v)
+    @property
+    def color(self): return self._color
+    @color.setter
+    def color(self, v):
+        self._set_color(v)
+        _add_command({"action":"update","id":self._id,"color":self._color.to_list()})
+    @property
+    def visible(self): return self._visible
+    @visible.setter
+    def visible(self, v):
+        self._visible = v
+        _add_command({"action":"update","id":self._id,"visible":v})
+    @property
+    def opacity(self): return self._opacity
+    @opacity.setter
+    def opacity(self, v):
+        self._opacity = self._check_unit(v,"opacity")
+        _add_command({"action":"update","id":self._id,"opacity":self._opacity})
+
+
+    @property
+    def shininess(self): return self._shininess
+    @shininess.setter
+    def shininess(self,v):
+        self._shininess=self._check_unit(v,'shininess')
+        _add_command({'action':'update','id':self._id,'shininess':self._shininess})
+
+    @property
+    def emissive(self): return self._emissive
+    @emissive.setter
+    def emissive(self,v):
+        self._emissive=bool(v)
+        _add_command({'action':'update','id':self._id,'emissive':self._emissive})
+
+# === 새 프리미티브 (v3) ===
+def _ellipsoid_vector(v):
+    return v.clone() if isinstance(v, vector) else vector(*v)
+
+class ellipsoid(box):
+    _geometry_type = 'ellipsoid'
+    def __init__(self, **kw):
+        axis = _ellipsoid_vector(kw.pop('axis', vector(1,0,0)))
+        size = kw.pop('size', None)
+        if size is None:
+            size = vector(kw.pop('length', axis.mag or 1), kw.pop('height',1), kw.pop('width',1))
+        else:
+            size = _ellipsoid_vector(size)
+            for i, name in enumerate(('length','height','width')):
+                if name in kw:
+                    setattr(size, ('x','y','z')[i], float(kw.pop(name)))
+        direction = axis.hat if axis.mag else vector(1,0,0)
+        kw['axis'] = direction * size.x
+        kw['up'] = _ellipsoid_vector(kw.pop('up', vector(0,1,0)))
+        super().__init__(size=size, **kw)
+        self._watch_vectors()
+    def _watch_vectors(self):
+        self._size._change_callback = lambda: setattr(self, 'size', self._size)
+        self._axis._change_callback = lambda: setattr(self, 'axis', self._axis)
+        self._up._change_callback = lambda: setattr(self, 'up', self._up)
+    @property
+    def size(self): return self._size
+    @size.setter
+    def size(self, value):
+        self._size = _ellipsoid_vector(value)
+        direction = self._axis.hat if self._axis.mag else vector(1,0,0)
+        self._axis = direction * self._size.x
+        self._watch_vectors()
+        _add_command({'action':'update','id':self._id,'size':self._size.to_list(),'axis':self._axis.to_list()})
+    @property
+    def axis(self): return self._axis
+    @axis.setter
+    def axis(self, value):
+        self._axis = _ellipsoid_vector(value)
+        if self._axis.mag: self._size._x = self._axis.mag
+        self._watch_vectors()
+        _add_command({'action':'update','id':self._id,'axis':self._axis.to_list(),'size':self._size.to_list()})
+    @property
+    def up(self): return self._up
+    @up.setter
+    def up(self, value):
+        self._up = _ellipsoid_vector(value)
+        self._watch_vectors()
+        _add_command({'action':'update','id':self._id,'up':self._up.to_list()})
+    @property
+    def length(self): return self._size.x
+    @length.setter
+    def length(self, value): self.size = vector(value,self._size.y,self._size.z)
+    @property
+    def height(self): return self._size.y
+    @height.setter
+    def height(self, value): self.size = vector(self._size.x,value,self._size.z)
+    @property
+    def width(self): return self._size.z
+    @width.setter
+    def width(self, value): self.size = vector(self._size.x,self._size.y,value)
+    def _clone_kwargs(self):
+        return {**super()._clone_kwargs(), 'size':self._size.clone(), 'axis':self._axis.clone(), 'up':self._up.clone()}
+
+class pyramid(ellipsoid):
+    _geometry_type = 'pyramid'
+
+class helix(_GObject):
+    def __init__(self, **kw):
+        self._radius = kw.pop('radius', 1.0)
+        self._axis = kw.pop('axis', vector(1,0,0))
+        self._length = kw.pop('length', None)
+        self._coils = kw.pop('coils', 5)
+        self._thickness = kw.pop('thickness', 0.05)
+        length = self._length if self._length is not None else self._axis.mag
+        super().__init__('helix', radius=self._radius, axis=self._axis.to_list(),
+                         length=float(length), coils=int(self._coils), thickness=float(self._thickness), **kw)
+
+class label:
+    def __init__(self, **kw):
+        self._id = _new_id()
+        self._pos = kw.get('pos', vector(0,0,0))
+        self._text = str(kw.get('text', ''))
+        self._color = kw.get('color', color.white)
+        self._height = kw.get('height', 16)
+        self._visible = kw.get('visible', True)
+        self._opacity = kw.get('opacity', 1.0)
+        self._background = kw.get('background', None)
+        _add_command({"action":"create","id":self._id,"type":"label",
+                      "pos":self._pos.to_list(),"color":self._color.to_list(),
+                      "text":self._text,"height":float(self._height),
+                      "visible":self._visible,"opacity":float(self._opacity),
+                      "background": self._background.to_list() if isinstance(self._background, vector) else None,
+                      "border": float(kw.get('border', 0))})
+text = label
+
+class curve:
+    def __init__(self, **kw):
+        self._id = _new_id()
+        self._color = kw.get('color', color.white)
+        self._radius = float(kw.get('radius', 0))
+        self._visible = kw.get('visible', True)
+        self._points = []
+        initial = kw.get('pos', None)
+        if initial is not None:
+            if isinstance(initial, vector): self._points.append(initial.clone())
+            else:
+                for p in initial: self._points.append(p.clone() if isinstance(p, vector) else vector(*p))
+        _add_command({"action":"create","id":self._id,"type":"curve",
+                      "color":self._color.to_list(),"radius":self._radius,
+                      "visible":self._visible,"points":[p.to_list() for p in self._points]})
+    def append(self, pos):
+        v = pos.clone() if isinstance(pos, vector) else vector(*pos)
+        self._points.append(v)
+        _add_command({"action":"curve_append","id":self._id,"pos":v.to_list()})
+    def clear(self):
+        self._points = []
+        _add_command({"action":"curve_clear","id":self._id})
+
+class points:
+    def __init__(self, **kw):
+        self._id = _new_id()
+        self._color = kw.get('color', color.white)
+        self._size = float(kw.get('size', 5))
+        self._visible = kw.get('visible', True)
+        self._points = []
+        initial = kw.get('pos', None)
+        if initial is not None:
+            if isinstance(initial, vector): self._points.append(initial.clone())
+            else:
+                for p in initial: self._points.append(p.clone() if isinstance(p, vector) else vector(*p))
+        _add_command({"action":"create","id":self._id,"type":"points",
+                      "color":self._color.to_list(),"size":self._size,
+                      "visible":self._visible,"points":[p.to_list() for p in self._points]})
+    def append(self, pos):
+        v = pos.clone() if isinstance(pos, vector) else vector(*pos)
+        self._points.append(v)
+        _add_command({"action":"curve_append","id":self._id,"pos":v.to_list()})
+    def clear(self):
+        self._points = []
+        _add_command({"action":"curve_clear","id":self._id})
+
+
+# === 저수준 메시 ===
+class vertex:
+    def __init__(self, pos=None, color=None, normal=None, opacity=1.0):
+        self.pos = pos if pos is not None else vector(0,0,0)
+        self.color = color if color is not None else vector(1,1,1)
+        self.normal = normal
+        self.opacity = float(opacity)
+    def to_dict(self):
+        d = {"pos":self.pos.to_list(),"color":self.color.to_list(),"opacity":self.opacity}
+        if isinstance(self.normal, vector): d["normal"] = self.normal.to_list()
+        return d
+
+class triangle:
+    def __init__(self, v0=None, v1=None, v2=None, vs=None, **kw):
+        self._id = _new_id()
+        verts = list(vs) if vs is not None else [v0, v1, v2]
+        if len(verts) != 3 or any(v is None for v in verts):
+            raise ValueError("triangle은 정확히 3개의 vertex가 필요합니다")
+        self._vertices = [v if isinstance(v, vertex) else vertex(pos=v) for v in verts]
+        _add_command({"action":"create","id":self._id,"type":"triangle",
+                      "vertices":[v.to_dict() for v in self._vertices],
+                      "visible":kw.get('visible', True)})
+
+class quad:
+    def __init__(self, v0=None, v1=None, v2=None, v3=None, vs=None, **kw):
+        self._id = _new_id()
+        verts = list(vs) if vs is not None else [v0, v1, v2, v3]
+        if len(verts) != 4 or any(v is None for v in verts):
+            raise ValueError("quad는 정확히 4개의 vertex가 필요합니다")
+        self._vertices = [v if isinstance(v, vertex) else vertex(pos=v) for v in verts]
+        _add_command({"action":"create","id":self._id,"type":"quad",
+                      "vertices":[v.to_dict() for v in self._vertices],
+                      "visible":kw.get('visible', True)})
+
+class extrusion:
+    def __init__(self, path=None, shape=None, color=None, **kw):
+        self._id = _new_id()
+        path = path or []
+        path_pts = [p.to_list() if isinstance(p, vector) else list(p) for p in path]
+        shape = shape or [(-0.5,-0.5),(0.5,-0.5),(0.5,0.5),(-0.5,0.5)]
+        shape_pts = [[s.x, s.y] if isinstance(s, vector) else list(s)[:2] for s in shape]
+        col = color if color is not None else vector(1,1,1)
+        _add_command({"action":"create","id":self._id,"type":"extrusion",
+                      "path":path_pts,"shape":shape_pts,"color":col.to_list(),
+                      "visible":kw.get('visible', True),"opacity":float(kw.get('opacity', 1.0))})
+
+
+# === scene 객체 + frame 별칭 ===
+class _ExportCamera:
+    def __init__(self,owner): self._scene=owner
+    @property
+    def pos(self):
+        return self._scene._read('pos',self._scene._center-self._scene._forward*self._scene._distance())
+    @pos.setter
+    def pos(self,v):
+        axis=self.axis
+        self._scene._center=v+axis
+        self._scene._send('camera_pos',v.to_list())
+    @property
+    def axis(self): return self._scene.center-self.pos
+    @axis.setter
+    def axis(self,v):
+        if v.mag==0: raise ValueError('camera.axis must be nonzero')
+        self._scene._center=self.pos+v
+        self._scene._forward=norm(v)
+        self._scene._range=v.mag*math.tan(self._scene._fov/2)
+        self._scene._send('camera_axis',v.to_list())
+    def follow(self,obj=None): self._scene._send('camera_follow',getattr(obj,'_id',None))
+    def rotate(self,angle=0,axis=None,origin=None):
+        axis=axis if axis is not None else self._scene.forward
+        old_pos,old_axis=self.pos,self.axis
+        origin=origin if origin is not None else old_pos
+        new_up=self._scene.up.rotate(angle,axis=axis)
+        self.pos=origin+(old_pos-origin).rotate(angle,axis=axis)
+        self.axis=old_axis.rotate(angle,axis=axis)
+        self._scene.up=new_up
+
+class _Scene:
+    def __init__(self):
+        self._background=vector(0.97,0.98,0.98)
+        self._range=10.0
+        self._center=vector(0,0,0)
+        self._forward=vector(0,0,-1)
+        self._up=vector(0,1,0)
+        self._fov=math.pi/3
+        self._autoscale=True
+        self.camera=_ExportCamera(self)
+    def _send(self,name,value):
+        _add_command({'action':'scene','property':name,'value':value})
+        _send_commands()
+    def _read(self,name,fallback):
+        try:
+            value=json.loads(str(_js_camera_state())).get(name)
+            if value is not None: return vector(*value) if isinstance(value,list) else value
+        except (NameError,TypeError,ValueError): pass
+        return fallback
+    def _distance(self): return self._range/math.tan(self._fov/2)
+    @property
+    def background(self): return self._background
+    @background.setter
+    def background(self,v):
+        self._background=v
+        self._send('background',v.to_list())
+    @property
+    def range(self): return self._read('range',self._range)
+    @range.setter
+    def range(self,v):
+        v=float(v)
+        if not math.isfinite(v) or v<=0: raise ValueError('scene.range must be positive')
+        self._range=v
+        self._autoscale=False
+        self._send('range',v)
+    @property
+    def center(self):
+        v=self._read('center',self._center)
+        v._change_callback=lambda: self._send('center',v.to_list())
+        return v
+    @center.setter
+    def center(self,v):
+        self._center=v
+        self._send('center',v.to_list())
+    @property
+    def forward(self):
+        v=self._read('forward',self._forward)
+        v._change_callback=lambda: self._send('forward',v.to_list())
+        return v
+    @forward.setter
+    def forward(self,v):
+        if v.mag==0: raise ValueError('scene.forward must be nonzero')
+        self._forward=norm(v)
+        self._send('forward',self._forward.to_list())
+    @property
+    def up(self): return self._read('up',self._up)
+    @up.setter
+    def up(self,v):
+        if v.mag==0: raise ValueError('scene.up must be nonzero')
+        self._up=norm(v)
+        self._send('up',self._up.to_list())
+    @property
+    def fov(self): return self._read('fov',self._fov)
+    @fov.setter
+    def fov(self,v):
+        v=float(v)
+        if not 0<v<math.pi: raise ValueError('scene.fov must be between 0 and pi')
+        self._fov=v
+        self._send('fov',v)
+    @property
+    def autoscale(self): return self._read('autoscale',self._autoscale)
+    @autoscale.setter
+    def autoscale(self,v):
+        self._autoscale=bool(v)
+        self._send('autoscale',bool(v))
+    @property
+    def title(self): return ''
+    @title.setter
+    def title(self,v): print(f"[scene.title] {v}")
+    @property
+    def caption(self): return ''
+    @caption.setter
+    def caption(self,v): print(f"[scene.caption] {v}")
+    def bind(self,*args,**kw):
+        print("[scene.bind] standalone HTML export에서는 이벤트가 지원되지 않습니다.")
+        if len(args)==1: return lambda fn: fn
+    def unbind(self,*args,**kw): pass
+    def waitfor(self,*args,**kw): pass
+    @property
+    def mouse(self):
+        class _M:
+            pos=vector(0,0,0)
+            pick=None
+        return _M()
+
+scene = _Scene()
+frame = compound
+
+
+# === UI 위젯 / 2D 그래프 — standalone export 미지원 ===
+def _unsupported_warn(name):
+    print(f"[{name}] standalone HTML export에서는 이 기능이 지원되지 않습니다.")
+
+def keysdown():
+    """standalone export에서는 키보드 폴링 미지원 — 빈 리스트 반환"""
+    return []
+
+class _NoOpWidget:
+    def __init__(self, *args, **kw):
+        _unsupported_warn(self.__class__.__name__)
+        self._value = kw.get('value', None)
+    @property
+    def value(self): return self._value
+    @value.setter
+    def value(self, v): self._value = v
+    @property
+    def disabled(self): return False
+    @disabled.setter
+    def disabled(self, v): pass
+    def delete(self): pass
+
+class slider(_NoOpWidget): pass
+class button(_NoOpWidget):
+    def __init__(self, text='', **kw): super().__init__(**kw); self._text = text
+    @property
+    def text(self): return self._text
+    @text.setter
+    def text(self, v): self._text = v
+class checkbox(_NoOpWidget): pass
+class radio(_NoOpWidget): pass
+class menu(_NoOpWidget):
+    """조작은 지원하지 않지만 처음 선택한 항목은 읽을 수 있어 menu를 사용하는 작품이 멈추지 않는다."""
+    def __init__(self, choices=None, selected=None, **kw):
+        super().__init__(**kw)
+        self._choices = list(choices) if choices else []
+        if selected is None and self._choices: selected = self._choices[0]
+        self._value = selected
+    @property
+    def choices(self): return list(self._choices)
+    @property
+    def selected(self): return self._value
+    @selected.setter
+    def selected(self, v): self._value = v
+    @property
+    def index(self): return self._choices.index(self._value) if self._value in self._choices else -1
+    @index.setter
+    def index(self, i): self._value = self._choices[int(i)]
+class winput(_NoOpWidget): pass
+
+class graph:
+    def __init__(self, **kw):
+        _unsupported_warn('graph')
+        self._series = []
+    def _add_series(self, s): self._series.append(s)
+    def delete(self): pass
+
+class _GSeriesNoOp:
+    def __init__(self, **kw):
+        g = kw.get('graph', None) or graph()
+        self._graph = g
+        g._add_series(self)
+    def plot(self, *args, **kw): pass
+    def delete(self): pass
+
+class gcurve(_GSeriesNoOp): pass
+class gdots(_GSeriesNoOp): pass
+class gvbars(_GSeriesNoOp): pass
+class ghbars(_GSeriesNoOp): pass
+
+
+# === 조명 ===
+class local_light:
+    def __init__(self, **kw):
+        self._id = _new_id()
+        self._pos = kw.get('pos', vector(0,0,0))
+        self._color = kw.get('color', color.white)
+        self._intensity = kw.get('intensity', 1.0)
+        _add_command({"action":"create","id":self._id,"type":"local_light","pos":self._pos.to_list(),"color":self._color.to_list(),"intensity":self._intensity})
+    @property
+    def pos(self): return self._pos
+    @pos.setter
+    def pos(self, v): self._pos=v; _add_command({"action":"update","id":self._id,"pos":v.to_list()})
+    @property
+    def color(self): return self._color
+    @color.setter
+    def color(self, v): self._color=v; _add_command({"action":"update","id":self._id,"color":v.to_list()})
+    @property
+    def intensity(self): return self._intensity
+    @intensity.setter
+    def intensity(self, v): self._intensity=v; _add_command({"action":"update","id":self._id,"intensity":v})
+
+class distant_light:
+    def __init__(self, **kw):
+        self._id = _new_id()
+        self._direction = kw.get('direction', vector(0,-1,0))
+        self._color = kw.get('color', color.white)
+        self._intensity = kw.get('intensity', 1.0)
+        _add_command({"action":"create","id":self._id,"type":"distant_light","direction":self._direction.to_list(),"color":self._color.to_list(),"intensity":self._intensity})
+    @property
+    def direction(self): return self._direction
+    @direction.setter
+    def direction(self, v): self._direction=v; _add_command({"action":"update","id":self._id,"direction":v.to_list()})
+    @property
+    def color(self): return self._color
+    @color.setter
+    def color(self, v): self._color=v; _add_command({"action":"update","id":self._id,"color":v.to_list()})
+    @property
+    def intensity(self): return self._intensity
+    @intensity.setter
+    def intensity(self, v): self._intensity=v; _add_command({"action":"update","id":self._id,"intensity":v})
+
+
+# === rate/sleep ===
+async def rate(fps, callback=None):
+    _send_commands()
+    if callback is not None:
+        # GlowScript 콜백 형식 — 한 프레임 뒤 콜백을 별도 태스크로 부르고 바로 돌아온다
+        async def _later():
+            await asyncio.sleep(1.0/fps)
+            result = callback()
+            if asyncio.iscoroutine(result):
+                await result
+        asyncio.ensure_future(_later())
+        await asyncio.sleep(0)
+        return
+    await asyncio.sleep(1.0/fps)
+
+async def sleep(seconds):
+    _send_commands()
+    await asyncio.sleep(seconds)
+
+
+# === 씬/수학 유틸 ===
+def scene_background(c):
+    _add_command({"action":"scene","property":"background","value":c.to_list()})
+
+def mag(v): return v.mag
+def mag2(v): return v.mag2
+def hat(v): return v.hat
+def dot(a,b): return a.dot(b)
+def cross(a,b): return a.cross(b)
+def norm(v): return v.hat
+
+
+# === 한글 노트 → 영어 변환 ===
+_KOREAN_NOTE_MAP = {
+    '도':'C','레':'D','미':'E','파':'F','솔':'G','라':'A','시':'B',
+    '도#':'C#','레#':'D#','파#':'F#','솔#':'G#','라#':'A#',
+    '레b':'Db','미b':'Eb','솔b':'Gb','라b':'Ab','시b':'Bb',
+}
+def _resolve_note_name(name):
+    if not name: return name
+    for kr, en in _KOREAN_NOTE_MAP.items():
+        if name.startswith(kr):
+            rest = name[len(kr):]
+            if not rest or not rest[0].isdigit(): rest = '4' + rest
+            return en + rest
+    if len(name)==1 and name[0] in 'ABCDEFG': return name+'4'
+    if len(name)==2 and name[0] in 'ABCDEFG' and name[1] in '#b': return name+'4'
+    return name
+
+
+# === 사운드 API ===
+def play_sound(frequency=440, duration=0.3, type='sine', volume=0.3):
+    _add_command({"action":"sound","method":"beep","frequency":frequency,"duration":duration,"type":type,"volume":volume})
+
+def play_note(name, duration=0.5, type='sine', volume=0.4):
+    resolved = _resolve_note_name(name)
+    _add_command({"action":"sound","method":"note","name":resolved,"duration":duration,"type":type,"volume":volume})
+
+def play_chord(frequencies, duration=1.0, type='sine', volume=0.25):
+    _add_command({"action":"sound","method":"chord","frequencies":list(frequencies),"duration":duration,"type":type,"volume":volume})
+
+def play_sequence(notes):
+    note_list = []
+    for n in notes:
+        item = {"freq":n.get("freq",440),"duration":n.get("duration",0.3)}
+        if "type" in n: item["type"]=n["type"]
+        if "volume" in n: item["volume"]=n["volume"]
+        note_list.append(item)
+    _add_command({"action":"sound","method":"sequence","notes":note_list})
+
+def play_sfx(name):
+    _add_command({"action":"sound","method":"sfx","name":name})
+
+def start_bgm(name, loop=True):
+    _add_command({"action":"sound","method":"bgm_start","name":name,"loop":loop})
+
+def stop_bgm():
+    _add_command({"action":"sound","method":"bgm_stop"})
+
+class note:
+    C3=130.81;D3=146.83;E3=164.81;F3=174.61;G3=196.00;A3=220.00;B3=246.94
+    C4=261.63;D4=293.66;E4=329.63;F4=349.23;G4=392.00;A4=440.00;B4=493.88
+    C5=523.25;D5=587.33;E5=659.25;F5=698.46;G5=783.99;A5=880.00;B5=987.77
+    C6=1046.50
+
+
+# === 3D 차트 API ===
+def scatter3d(points, colors=None, size=0.08, colormap='rainbow', opacity=0.9, show_axes=True):
+    pts = [list(p) for p in points]
+    cols = [list(c) for c in colors] if colors else None
+    _add_command({"action":"chart","chart_type":"scatter3d","points":pts,"colors":cols,"size":size,"colormap":colormap,"opacity":opacity,"show_axes":show_axes})
+    _send_commands()
+
+def surface3d(z_data, x_range=None, y_range=None, colormap='viridis', wireframe=True, opacity=0.85, show_axes=True):
+    z = [list(row) for row in z_data]
+    _add_command({"action":"chart","chart_type":"surface3d","z_data":z,"x_range":list(x_range) if x_range else [-5,5],"y_range":list(y_range) if y_range else [-5,5],"colormap":colormap,"wireframe":wireframe,"opacity":opacity,"show_axes":show_axes})
+    _send_commands()
+
+def line3d(points, color=None, width=0.03, show_axes=True):
+    pts = [list(p) for p in points]
+    _add_command({"action":"chart","chart_type":"line3d","points":pts,"color":color.to_list() if hasattr(color,'to_list') else color,"width":width,"show_axes":show_axes})
+    _send_commands()
+
+def bar3d(values, labels=None, colors=None, colormap='plasma', bar_width=0.6, show_axes=True):
+    _add_command({"action":"chart","chart_type":"bar3d","values":list(values),"labels":list(labels) if labels else None,"colors":[list(c) for c in colors] if colors else None,"colormap":colormap,"bar_width":bar_width,"show_axes":show_axes})
+    _send_commands()
+
+산점도=scatter3d; 표면그래프=surface3d; 선그래프=line3d; 막대그래프=bar3d
+
+
+# === 짧은 별칭 ===
+def sound(frequency=440, duration=0.3, type='sine', volume=0.3): play_sound(frequency,duration,type,volume)
+def sfx(name): play_sfx(name)
+def bgm(name, loop=True): start_bgm(name,loop)
+def chord(frequencies, duration=1.0, type='sine', volume=0.25): play_chord(frequencies,duration,type,volume)
+
+def 소리(frequency=440, duration=0.3, type='sine', volume=0.3): play_sound(frequency,duration,type,volume)
+async def 음표(name, duration=0.5, type='sine', volume=0.4):
+    play_note(_resolve_note_name(name), duration, type, volume)
+    _send_commands()
+    await asyncio.sleep(duration)
+play_note_and_wait = 음표
+def 효과음(name): play_sfx(name)
+def 배경음악(name, loop=True): start_bgm(name,loop)
+def 배경음악정지(): stop_bgm()
+async def 화음(frequencies, duration=1.0, type='sine', volume=0.25):
+    play_chord(frequencies, duration, type, volume)
+    _send_commands()
+    await asyncio.sleep(duration)
+
+
+# === NamedList ===
+class NamedList(list):
+    def __init__(self, items, name_map=None):
+        super().__init__(items)
+        self._name_map = name_map or {}
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            if key in self._name_map: return super().__getitem__(self._name_map[key])
+            raise KeyError(f"'{key}' 이름을 찾을 수 없습니다")
+        return super().__getitem__(key)
+
+_scale_names = {'도':0,'레':1,'미':2,'파':3,'솔':4,'라':5,'시':6,'높은도':7,'C':0,'D':1,'E':2,'F':3,'G':4,'A':5,'B':6}
+음계 = NamedList([note.C4,note.D4,note.E4,note.F4,note.G4,note.A4,note.B4,note.C5], _scale_names)
+scale = 음계
+높은음계 = NamedList([note.C5,note.D5,note.E5,note.F5,note.G5,note.A5,note.B5,note.C6], _scale_names)
+high_scale = 높은음계
+낮은음계 = NamedList([note.C3,note.D3,note.E3,note.F3,note.G3,note.A3,note.B3,note.C4], _scale_names)
+low_scale = 낮은음계
+
+_rainbow_names = {'빨':0,'빨강':0,'주':1,'주황':1,'노':2,'노랑':2,'초':3,'초록':3,'하늘':4,'청':4,'파':5,'파랑':5,'보':6,'보라':6,'red':0,'orange':1,'yellow':2,'green':3,'cyan':4,'blue':5,'purple':6}
+무지개 = NamedList([color.red,color.orange,color.yellow,color.green,color.cyan,color.blue,color.purple], _rainbow_names)
+rainbow = 무지개
+따뜻한색 = NamedList([color.red,color.orange,color.yellow], {'빨':0,'주':1,'노':2})
+warm_colors = 따뜻한색
+차가운색 = NamedList([color.cyan,color.blue,color.purple], {'하늘':0,'파':1,'보':2})
+cool_colors = 차가운색
+기본색 = NamedList([color.white,color.black,color.red,color.green,color.blue],{'흰':0,'흰색':0,'검':1,'검정':1,'빨':2,'빨강':2,'초':3,'초록':3,'파':4,'파랑':4,'white':0,'black':1,'red':2,'green':3,'blue':4})
+basic_colors = 기본색
+파스텔 = NamedList([vector(1,0.7,0.7),vector(1,0.85,0.7),vector(1,1,0.7),vector(0.7,1,0.7),vector(0.7,0.9,1),vector(0.8,0.7,1),vector(1,0.7,0.9)],{'핑크':0,'주황':1,'노랑':2,'초록':3,'하늘':4,'보라':5,'자홍':6})
+pastel_colors = 파스텔
+
+
+# === 악기 시스템 ===
+_INSTRUMENT_PRESETS = {
+    'piano':{'type':'triangle','volume':0.35},'organ':{'type':'sine','volume':0.3},
+    'guitar':{'type':'sawtooth','volume':0.2},'flute':{'type':'sine','volume':0.25},
+    'trumpet':{'type':'square','volume':0.2},'bass':{'type':'triangle','volume':0.4},
+    'chiptune':{'type':'square','volume':0.15},'synth':{'type':'sawtooth','volume':0.25},
+}
+_INSTRUMENT_KR = {'피아노':'piano','오르간':'organ','기타':'guitar','플루트':'flute','트럼펫':'trumpet','베이스':'bass','칩튠':'chiptune','신스':'synth'}
+
+def _resolve_instrument(name):
+    if not name: return _INSTRUMENT_PRESETS['piano']
+    resolved = _INSTRUMENT_KR.get(name, name).lower()
+    return _INSTRUMENT_PRESETS.get(resolved, _INSTRUMENT_PRESETS['piano'])
+
+def play_instrument(instrument, name, duration=0.5, volume=None):
+    preset = _resolve_instrument(instrument)
+    vol = volume if volume is not None else preset['volume']
+    resolved = _resolve_note_name(name)
+    _add_command({"action":"sound","method":"note","name":resolved,"duration":duration,"type":preset['type'],"volume":vol})
+
+async def 악기(instrument, name, duration=0.5, volume=None):
+    play_instrument(instrument, name, duration, volume)
+    _send_commands()
+    await asyncio.sleep(duration)
+`;
+
+  // 사용자 클릭 후 실행 (Chrome autoplay 정책 — 사운드 재생에 필요)
+  const startBtn = document.createElement('div');
+  startBtn.id = 'start-overlay';
+  startBtn.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(13,17,23,0.95);z-index:200;cursor:pointer;flex-direction:column;gap:16px;';
+  const startIcon = document.createElement('div');
+  startIcon.style.cssText = 'font-size:48px';
+  startIcon.textContent = '▶';
+  const startLabel = document.createElement('div');
+  startLabel.style.cssText = 'font-size:16px;color:#8b949e';
+  startLabel.textContent = '클릭하여 시작';
+  startBtn.appendChild(startIcon);
+  startBtn.appendChild(startLabel);
+  document.body.appendChild(startBtn);
+  startBtn.addEventListener('click', async () => {
+    startBtn.remove();
+    await ensureAudioReady();
+    run();
+  }, { once: true });
+  </script>
+</body>
+</html>

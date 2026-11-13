@@ -9,9 +9,11 @@
 ## VPyLab 교사 연수 슬라이드
 
 - 바로가기: https://greatsong.github.io/dugeun-danggok-slides/vpylab/
-- PDF(30쪽): `vpylab/VPyLab-교사연수-슬라이드.pdf`
-- 파일: `vpylab/index.html`(틀과 모양), `vpylab/deck-data.js`(내용과 진행 메모), `vpylab/deck.js`(동작), `vpylab/shots/`(화면 캡처)
-- 순서: 왜 만들었나 → 주요 기능 → 튜토리얼 실습 → 수업과 내일
-- 실시간 화면은 VPyLab의 `/embed/<작품 id>`를 iframe으로 넣습니다. 그 밖의 VPyLab 페이지는 iframe이 막혀 있어 캡처와 새 탭 열기 버튼으로 보여 줍니다.
-- iframe은 웹 주소(https)로 열었을 때만 뜹니다. 파일로 열거나 PDF에서는 같은 장면의 캡처가 보입니다.
-- 주소 끝에 `?print=1`을 붙이면 조작 버튼과 움직임을 뺀 인쇄용 화면이 됩니다. PDF는 이 화면을 장마다 찍어 묶은 것입니다.
+- PDF: `vpylab/VPyLab-교사연수-슬라이드.pdf` (메뉴 장은 예제마다 한 쪽씩 펼쳐서 실음)
+- 파일: `vpylab/deck-data.js`(내용과 진행 메모), `vpylab/deck.js`(동작), `vpylab/index.html`(모양), `vpylab/gs-data.js`(GlowScript 원본 목록)
+- `vpylab/demos/`: VPyLab의 "도구 → HTML 내려받기"로 받은 예제 파일. 서버나 DB 없이 페이지 안에서 바로 실행됩니다.
+  - 내려받은 파일에서는 클릭, 키보드, 버튼, 슬라이더가 동작하지 않습니다. 그런 예제(무지개 피아노, 버튼 튜토리얼, 키보드 우주 악기)는 VPyLab 새 탭으로 엽니다.
+  - 예제를 바꾸려면 VPyLab에서 HTML을 내려받아 `demos/`에 넣고, `shots/d-<이름>.jpg`에 대표 화면을 넣은 뒤 `deck-data.js`에 항목을 더합니다.
+- GlowScript 원본은 누르면 glowscript.org 페이지를 그 자리에 불러옵니다. 안 뜨면 '새 탭에서 열기'를 씁니다.
+- 캐릭터 그림(`vpylab/mong/`)은 vpylab.vercel.app 사용 안내에 쓰이는 그림입니다.
+- 주소 끝에 `?print=1`을 붙이면 인쇄용 화면이 됩니다. PDF는 이 화면을 쪽마다 찍어 묶은 것입니다.
