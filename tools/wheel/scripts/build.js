@@ -4,7 +4,7 @@
 // - wheel/index.html: 캐릭터 버전 (구슬마다 두근두근 캐릭터)
 // - wheel/text.html : 글자 버전. index.html 과 같은 번들을 쓰고 <html data-skin> 과 제목만 다르다
 const { execFileSync } = require('node:child_process');
-const { readFileSync, rmSync, mkdirSync, writeFileSync } = require('node:fs');
+const { copyFileSync, readFileSync, rmSync, mkdirSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
@@ -31,6 +31,9 @@ writeFileSync(
   indexHtml.replace(skinAttr, 'data-skin="text"').replace(titleTag, '<title>두근두근 룰렛 (글자)</title>')
 );
 
+// Pretendard 글꼴은 SIL OFL 1.1 이라 라이선스 원문을 글꼴과 함께 둔다
+copyFileSync(path.join(root, 'assets/fonts/Pretendard-OFL.txt'), path.join(out, 'Pretendard-OFL.txt'));
+
 // 빌드 결과만 보는 사람을 위한 안내. 라이선스 원문(LICENSE.txt)은 Parcel 이 index.html 의 링크를 따라 함께 내놓는다
 writeFileSync(
   path.join(out, 'README.md'),
@@ -43,6 +46,8 @@ writeFileSync(
     '이 폴더는 `tools/wheel` 을 빌드해 만든 결과입니다. 직접 고치지 말고 `tools/wheel` 에서 고친 뒤 `npm run build` 하세요.',
     '',
     '원본: https://github.com/lazygyu/roulette (MIT License, Copyright (c) 2022 LazyGyu). 라이선스 원문은 이 폴더의 `LICENSE.txt` 에 있습니다. 아이콘은 Font Awesome Free (CC BY 4.0, https://fontawesome.com/license/free) 입니다.',
+    '',
+    '글꼴: Pretendard (Copyright (c) 2021 Kil Hyung-jin, SIL Open Font License 1.1, 고치지 않음). 라이선스 원문은 `Pretendard-OFL.txt` 에 있습니다.',
     '',
   ].join('\n')
 );

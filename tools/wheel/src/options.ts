@@ -1,3 +1,4 @@
+import type { ThemeName } from './data/constants';
 import type { RenderResolution } from './rouletteRenderer';
 
 export type WinnerRange = { start: number; end: number };
@@ -16,7 +17,8 @@ function loadResolution(): RenderResolution {
   } catch {
     // 저장소를 못 쓰는 환경(사생활 보호 모드 등)은 기본값
   }
-  return 'default';
+  // 기본은 '선명'(high). 'default'(가볍게)는 화면 절반 크기로 그려 늘리므로 프로젝터에서 흐리다
+  return 'high';
 }
 
 export function saveResolution(value: RenderResolution) {
@@ -44,6 +46,25 @@ function loadSkin(): Skin {
   return value === 'text' ? 'text' : 'mong';
 }
 
+const THEME_STORAGE_KEY = 'wheel_theme';
+
+/** 바탕: 밝게(cream, 기본) / 어둡게(night). 캐릭터·글자 버전이 같이 쓴다 */
+function loadTheme(): ThemeName {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY) === 'night' ? 'night' : 'cream';
+  } catch {
+    return 'cream';
+  }
+}
+
+export function saveTheme(value: ThemeName) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, value);
+  } catch {
+    // 저장에 실패하면 이번 방문에만 적용된다
+  }
+}
+
 class Options {
   /** 구슬 모양. 그림을 처음에 한 번 읽으므로 실행 중에는 바꾸지 않는다 */
   readonly skin: Skin = loadSkin();
@@ -53,6 +74,7 @@ class Options {
   autoRecording: boolean = true;
   /** 렌더링 해상도. 물리 시뮬레이션과는 무관하다 */
   resolution: RenderResolution = loadResolution();
+  theme: ThemeName = loadTheme();
 }
 
 const options = new Options();

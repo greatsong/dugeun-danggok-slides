@@ -1,13 +1,13 @@
 import { Camera } from './camera';
 import { characterUrls } from './characters';
-import { canvasHeight, canvasWidth, initialZoom, Skills, Themes, zoomThreshold } from './data/constants';
+import { canvasHeight, canvasWidth, initialZoom, Skills, type ThemeName, Themes, zoomThreshold } from './data/constants';
 import { type StageDef, stages } from './data/maps';
 import { FastForwader } from './fastForwader';
 import type { GameObject } from './gameObject';
 import type { IPhysics } from './IPhysics';
 import { Marble } from './marble';
 import { Minimap } from './minimap';
-import options, { isRenderResolution, saveResolution, type WinnerRange } from './options';
+import options, { isRenderResolution, saveResolution, saveTheme, type WinnerRange } from './options';
 import { ParticleManager } from './particleManager';
 import { Box2dPhysics } from './physics-box2d';
 import { ProgressMap } from './progressMap';
@@ -84,7 +84,7 @@ export class Roulette extends EventTarget {
 
   private _isReady: boolean = false;
   protected fastForwarder!: FastForwader;
-  protected _theme: ColorTheme = Themes.dark;
+  protected _theme: ColorTheme = Themes[options.theme];
 
   get isReady() {
     return this._isReady;
@@ -242,7 +242,7 @@ export class Roulette extends EventTarget {
       if (marble.y > this._stage.goalY) {
         this._winners.push(marble);
         if (this._isRunning && this._isWinningRank(this._winners.length - 1)) {
-          this._particleManager.shot(this._renderer.width, this._renderer.height);
+          this._particleManager.shot(this._renderer.width, this._renderer.height, this._theme);
         }
         this._pendingRemovals.push(
           window.setTimeout(() => {
@@ -297,7 +297,7 @@ export class Roulette extends EventTarget {
     if (ranked.length <= end) return;
 
     if (early && this._isWinningRank(this._winners.length)) {
-      this._particleManager.shot(this._renderer.width, this._renderer.height);
+      this._particleManager.shot(this._renderer.width, this._renderer.height, this._theme);
     }
 
     this._result = ranked.slice(start, end + 1);
@@ -357,6 +357,9 @@ export class Roulette extends EventTarget {
       result: this._result,
       size: { x: this._renderer.width, y: this._renderer.height },
       theme: this._theme,
+      uiScale: Math.max(1, this._renderer.sizeFactor),
+      running: this._isRunning,
+      timeScale: this._timeScale,
     };
     this._renderer.render(renderParams, this._uiObjects);
   }
@@ -498,8 +501,16 @@ export class Roulette extends EventTarget {
     return this._renderer.getResultCloseHitAt(e.offsetX * sizeFactor, e.offsetY * sizeFactor);
   }
 
-  public setTheme(themeName: keyof typeof Themes) {
+  /** 바탕: 'cream'(밝게) / 'night'(어둡게). 다음 방문을 위해 저장한다 */
+  public setTheme(themeName: ThemeName) {
+    if (!(themeName in Themes)) return;
+    options.theme = themeName;
+    saveTheme(themeName);
     this._theme = Themes[themeName];
+  }
+
+  public getTheme(): ThemeName {
+    return options.theme;
   }
 
   public getSpeed() {

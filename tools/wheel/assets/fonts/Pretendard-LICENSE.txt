@@ -1,0 +1,5 @@
+Pretendard Variable (woff2)
+출처: curriculum-weaver 프로젝트의 node_modules/pretendard 패키지에서 복사
+저작권: Copyright (c) 2021, Kil Hyung-jin (https://github.com/orioncactus/pretendard)
+라이선스: SIL Open Font License 1.1 (https://openfontlicense.org)
+글꼴 파일을 수정하지 않고 웹 화면 표시용으로만 동봉함.

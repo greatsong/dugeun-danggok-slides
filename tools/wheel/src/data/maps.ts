@@ -11,6 +11,8 @@ export type StageDef = {
   zoomZones?: ZoomZone[];
   /** 카메라 구역. 카메라가 주목하는 구슬이 구역 안에 있으면 구슬 대신 구역 전체를 화면에 담는다 (결승 줌인 중에는 쓰지 않는다) */
   cameraZones?: CameraZone[];
+  /** 결승선을 그릴 통로의 좌우 x (goalY 높이). 그림에만 쓰고 물리·판정은 읽지 않는다 */
+  finish?: { x1: number; x2: number };
 };
 
 /** 연출 구역 (x, y 는 가운데, w, h 는 전체 크기). 가운데로 갈수록 연출이 세진다 */
@@ -45,6 +47,7 @@ export const stages: StageDef[] = [
     title: 'Wheel of fortune',
     goalY: 111,
     zoomY: 106.75,
+    finish: { x1: 15.1, x2: 16 },
     entities: [
       // polyline
       {

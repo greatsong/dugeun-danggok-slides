@@ -15,6 +15,8 @@ SIZE = 200
 PAD = 0.04  # 가장자리 여백 비율
 
 CHARACTERS = ['dugeun', 'arong', 'chorong', 'doran', 'gori', 'mandu', 'mongsil', 'salang', 'ssiat', 'ttukttak', 'drum']
+# 설정 패널 위로 고개를 내미는 '낭만당곡' 머리띠 두근몽 (폭 160px)
+PEEK = ('dugeun-band', 'peek', 160)
 
 
 def main() -> None:
@@ -28,6 +30,13 @@ def main() -> None:
         square = square.resize((SIZE, SIZE), Image.LANCZOS)
         square.save(OUT / f'{name}.png', optimize=True)
         print(f'{name}.png', (OUT / f'{name}.png').stat().st_size, 'bytes')
+
+    src, out, width = PEEK
+    im = Image.open(SRC / f'{src}.png').convert('RGBA')
+    im = im.crop(im.getchannel('A').getbbox())
+    im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
+    im.save(OUT / f'{out}.png', optimize=True)
+    print(f'{out}.png', (OUT / f'{out}.png').stat().st_size, 'bytes')
 
 
 if __name__ == '__main__':
