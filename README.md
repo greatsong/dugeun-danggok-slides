@@ -12,6 +12,7 @@
 - 글자 버전: https://greatsong.github.io/dugeun-danggok-slides/wheel/text.html (색 구슬과 이름·번호만)
 - 이름 미리 넣기: 주소 끝에 `?names=가,나,다`. 번호는 `1~30`처럼 범위로 넣을 수 있습니다.
 - lazygyu의 Marble Roulette 소스(MIT)에서 광고·통계·상점 연결을 빼고 '운명의 수레바퀴' 맵 하나만 남겼습니다. 상표인 "마블 룰렛" 이름은 쓰지 않습니다.
+- 바탕은 설정에서 밝게(기본)·어둡게를 고릅니다. 효과음은 스피커 버튼이나 M 키로 끕니다. 디자인 회의 기록: `tools/wheel/DESIGN-MEETING.md`
 - 소스와 빌드 방법: `tools/wheel/README.md`. `wheel/`은 빌드 결과입니다.
 
 ## VPyLab 교사 연수 슬라이드

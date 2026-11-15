@@ -1,9 +1,90 @@
-:root {
-  --copyright-color: white;
+// 두근두근 룰렛 페이지 모양.
+// 색은 html[data-theme] 변수 한 벌에서만 가져온다 (밝게 = cream, 어둡게 = night). 캔버스 색은 src/data/constants.ts 의 Themes 와 같은 값이다.
+// 캐릭터 버전에서만 보이는 요소는 .mong-only 로 묶어 글자 버전(html[data-skin="text"])에서 숨긴다.
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('fonts/PretendardVariable.woff2') format('woff2-variations');
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root,
+:root[data-theme='cream'] {
+  --bg: #fffaf2;
+  --ink: #2d2a3e;
+  --sub: #6b6880;
+  --card: #ffffff;
+  --card-border: #ece6f7;
+  --field: #f7f4fd;
+  --field-border: #e4dcf5;
+  --chip: #efeaff;
+  --chip-hover: #e4dcfa;
+  --track: #efeaff;
+  --toggle-off: #d5cde8;
+  --accent: #cf3a6c;
+  --accent-hover: #b92f5e;
+  --accent-soft: #ffe4ec;
+  --accent-text: #c8336a;
+  --focus: #9b5cf0;
+  --shadow: 0 18px 50px rgba(70, 50, 130, 0.16);
+  --backdrop: rgba(45, 42, 62, 0.45);
+  --wordmark: linear-gradient(90deg, #e0467c, #9b5cf0);
+  color-scheme: light;
+}
+
+:root[data-theme='night'] {
+  --bg: #1e1b2e;
+  --ink: #f4f1ff;
+  --sub: #b7b2d0;
+  --card: #2a2640;
+  --card-border: #433d63;
+  --field: #1e1b2e;
+  --field-border: #4a4470;
+  --chip: #39345a;
+  --chip-hover: #453f6a;
+  --track: #1e1b2e;
+  --toggle-off: #5a5480;
+  --accent: #cf3a6c;
+  --accent-hover: #e04a7c;
+  --accent-soft: #4a2440;
+  --accent-text: #ff9fbf;
+  --focus: #b9a0ff;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  --backdrop: rgba(0, 0, 0, 0.55);
+  --wordmark: linear-gradient(90deg, #ff6f9e, #b98cff);
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+:root[data-skin='text'] .mong-only {
+  display: none !important;
 }
 
 .sr-only {
@@ -29,20 +110,28 @@ canvas {
   user-select: none;
 }
 
+// 원작 출처 표기. 경기 중에는 당첨 카드와 겹치지 않게 숨긴다 (대기 화면에서는 보인다)
 div.copyright {
   position: fixed;
-  bottom: 0;
+  bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
-  color: var(--copyright-color);
+  color: var(--sub);
   font-size: 12px;
   z-index: 999;
   width: 90%;
   text-align: center;
+  transition: opacity 0.4s;
+
+  a {
+    color: inherit;
+  }
 }
 
-div.copyright a {
-  color: var(--copyright-color);
+#settings.hide ~ div.copyright,
+#settings.hide ~ .wordmark {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .icon {
@@ -51,8 +140,9 @@ div.copyright a {
   mask-position: center center;
   mask-size: contain;
   display: inline-block;
-  width: 25px;
-  height: 25px;
+  flex: none;
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
 
   &.play {
@@ -78,23 +168,64 @@ div.copyright a {
   &.display {
     mask-image: url('images/display.svg');
   }
+
+  &.palette {
+    mask-image: url('images/palette.svg');
+  }
+
+  &.sound {
+    mask-image: url('images/sound-on.svg');
+  }
+
+  &.sound-off {
+    mask-image: url('images/sound-off.svg');
+  }
 }
 
+// 위쪽 가운데 이름표. 경기 중에는 숨긴다
+.wordmark {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 998;
+  padding: 6px 16px 7px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  transition: opacity 0.4s;
+
+  .dg {
+    background: var(--wordmark);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
 
 #settings {
   position: fixed;
-  bottom: 1rem;
-  left: 1rem;
-  background: #666;
-  border-radius: 10px;
-  padding: 10px;
+  bottom: 28px;
+  left: 16px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  gap: 16px;
   z-index: 999;
   min-width: 50%;
+  color: var(--ink);
 
   display: flex;
   visibility: visible;
   opacity: 1;
-  transition: visibility 0s, opacity 1s linear;
+  transition: visibility 0s, opacity 0.6s ease;
 
   &.hide {
     opacity: 0;
@@ -103,60 +234,89 @@ div.copyright a {
 
   h3 {
     padding: 0;
-    margin: 0;
-    font-size: 12pt;
-    color: #fefefe;
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
   }
 
   textarea {
     width: 100%;
-    // 오른쪽 칼럼이 패널 높이를 결정하면 '여러명'을 열 때 범위 행(div.row, 35px)만큼
-    // 패널이 세로로 튄다. 왼쪽이 항상 더 크도록 그만큼 미리 확보해 높이를 고정한다
-    min-height: calc(5rem + 35px);
-    border: none;
-    background: #999;
-    font-size: 14pt;
-  }
+    // 오른쪽 칼럼이 패널 높이를 결정하면 '여러 명'을 열 때 범위 행만큼 패널이 세로로 튄다.
+    // 왼쪽이 항상 더 크도록 그만큼 미리 확보해 높이를 고정한다
+    min-height: calc(6rem + 42px);
+    border: 1.5px solid var(--field-border);
+    border-radius: 14px;
+    background: var(--field);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    resize: vertical;
 
-  button, .btn {
-    color: #fefefe;
-    background: #222;
-    border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
-    position: relative;
-    display: inline-block;
-
-    &:active:after {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+    &::placeholder {
+      color: var(--sub);
     }
   }
 
-  // <a class="btn">가 <button>과 같은 크기/모양으로 보이도록
-  a.btn {
-    text-decoration: none;
-    font-size: 10pt;
+  button,
+  .btn {
+    color: var(--ink);
+    background: var(--chip);
+    border: none;
+    border-radius: 999px;
+    height: 40px;
+    padding: 0 14px;
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.08s;
+
+    &:hover {
+      background: var(--chip-hover);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  // 시작 버튼만 색을 준다 (흰 글자 대비 4.7:1)
+  #btnStart {
+    background: var(--accent);
+    color: #ffffff;
+    height: 44px;
+    padding: 0 20px;
+    font-size: 17px;
+    font-weight: 800;
+
+    &:hover {
+      background: var(--accent-hover);
+    }
+  }
+
+  #btnSound {
+    width: 40px;
+    padding: 0;
   }
 
   div.left {
-    flex-grow: 1;
-    flex-shrink: 1;
+    flex: 1 1 auto;
     order: 1;
+    min-width: 0;
 
     .actions {
       display: flex;
       align-items: center;
-      justify-content: stretch;
-      gap: 2px;
+      gap: 6px;
+      margin-top: 10px;
 
       div.sep {
         flex-grow: 1;
@@ -170,26 +330,40 @@ div.copyright a {
 
   div.right {
     order: 2;
-    flex-grow: 0;
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
     div.row {
       display: flex;
       align-items: center;
-      height: 35px;
+      height: 42px;
 
       label {
-        width: 150px;
-        flex-grow: 0;
-        flex-shrink: 0;
-        padding-left: 1rem;
-        color: white;
+        width: 120px;
+        flex: none;
+        color: var(--ink);
+        font-size: 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .icon {
+          color: var(--sub);
+        }
       }
 
       .toggle-item {
         width: 50%;
         display: flex;
         align-items: center;
+
+        label {
+          width: auto;
+          margin-right: 10px;
+        }
       }
 
       // div.right div.row 와 같은 자리에 두어야 display:flex 를 이긴다
@@ -202,316 +376,283 @@ div.copyright a {
 
         &.active {
           display: flex;
-          padding-left: 150px;
+          padding-left: 120px;
         }
 
         .range-sep {
           flex: 0 0 24px;
           background: transparent;
-          color: white;
+          color: var(--sub);
         }
       }
     }
   }
 
-  select {
-    height: 25px;
-    width: 100%;
-    border-radius: 5px;
-    background: #999;
-  }
-
-  input[type=checkbox] {
-    width: 50px;
-    display: inline-block;
-    padding-right: 63px;
-    height: 25px;
+  // 켬/끔 스위치
+  input[type='checkbox'] {
+    appearance: none;
+    flex: none;
+    width: 46px;
+    height: 26px;
+    margin: 0;
+    border-radius: 999px;
+    background: var(--toggle-off);
     position: relative;
-    vertical-align: middle;
+    cursor: pointer;
+    transition: background 0.2s;
 
-    &:before {
+    &::after {
+      content: '';
       position: absolute;
-      content: '';
-      display: inline-block;
-      width: 50px;
-      height: 25px;
-      border-radius: 25px;
-      background: #999;
-      top: 0;
-      left: 0;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      transition: transform 0.2s;
     }
 
-    &:after {
-      position: absolute;
-      top: 0;
-      left: 0;
-      content: '';
-      border-radius: 25px;
-      width: 25px;
-      height: 25px;
-      background: #ccc;
-      transition: transform .2s;
+    &:checked {
+      background: var(--accent);
     }
 
-    &:checked:after {
-      transform: translateX(100%);
-      background: white;
-    }
-
-    &:checked:before {
-      content: '';
-      background: #00baff;
+    &:checked::after {
+      transform: translateX(20px);
     }
   }
 
+  // 여러 칸 중 하나 고르기
   .btn-group {
     display: flex;
     justify-content: stretch;
-    // number input의 기본 폭(~169px)이 intrinsic 폭에 들어가 오른쪽 칼럼을 넓히지 않도록
+    gap: 3px;
+    padding: 3px;
+    border-radius: 12px;
+    background: var(--track);
+    // number input의 기본 폭이 intrinsic 폭에 들어가 오른쪽 칼럼을 넓히지 않도록
     // width를 0으로 누르고, 대신 그룹이 행의 남는 폭을 채우게 한다
     flex: 1 1 0;
     min-width: 0;
 
     & > * {
-      box-sizing: border-box;
       flex: 1 1 0;
       min-width: 0;
       overflow: hidden;
-      height: 25px;
-      border-radius: 0;
-      background: #999;
+      height: 30px;
+      border-radius: 9px;
+      background: transparent;
       border: none;
-      padding: 0;
-      color: #fefefe;
-
+      padding: 0 6px;
+      color: var(--sub);
+      font-size: 14px;
+      font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 4px;
 
-      &:first-child {
-        border-radius: 10px 0 0 10px;
-      }
-
-      &:last-child {
-        border-radius: 0 10px 10px 0;
-      }
-
-      &.active:before {
-        content: '';
-        width: 15px;
-        height: 15px;
-        display: inline-block;
-        vertical-align: middle;
-        mask-image: url('images/check.svg');
-        mask-repeat: no-repeat;
-        background: white;
+      &:hover {
+        background: var(--chip-hover);
+        color: var(--ink);
       }
 
       &.active {
-        background: #333;
+        background: var(--accent);
+        color: #ffffff;
+      }
+
+      &.active::before {
+        content: '';
+        width: 13px;
+        height: 13px;
+        flex: none;
+        mask-image: url('images/check.svg');
+        mask-repeat: no-repeat;
+        mask-size: contain;
+        background: currentColor;
       }
     }
 
-    input[type=number] {
-      box-sizing: border-box;
+    // 버튼처럼 생긴 그룹 안 버튼은 위의 둥근 알약 버튼 모양을 쓰지 않는다
+    button {
+      height: 30px;
+      border-radius: 9px;
+    }
+
+    input[type='number'] {
       text-align: center;
       width: 0;
+      background: var(--card);
+      color: var(--ink);
+      border: 1.5px solid var(--field-border);
+      font-size: 15px;
+
+      &.active {
+        border-color: var(--accent);
+        color: var(--accent-text);
+        background: var(--card);
+      }
+
+      &.active::before {
+        display: none;
+      }
     }
   }
 }
 
+// 패널 위로 고개를 내민 두근몽 (캐릭터 버전, 큰 화면에서만)
+.peek {
+  position: absolute;
+  right: 22px;
+  top: -64px;
+  width: 74px;
+  pointer-events: none;
+  animation: peek-bob 2.6s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+@keyframes peek-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+}
+
+// 경기 중에도 보이는 소리 버튼 (설정 패널이 숨는 동안)
+#btnSoundFloat {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 999;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#settings.hide ~ #btnSoundFloat {
+  display: flex;
+}
+
+// 사용법 창
 #notice {
   display: none;
   position: fixed;
-  overflow: hidden;
   top: 50%;
   left: 50%;
-  width: 500px;
-  max-width: 90%;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
   transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 30px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 28px;
+  box-shadow: 0 0 0 100vmax var(--backdrop), var(--shadow);
   z-index: 1001;
-  padding: 10px 10px;
-  color: #333;
+  color: var(--ink);
   flex-direction: column;
+  overflow: hidden;
 
   h2 {
-    background-color: #58c9af;
-    margin: -10px -10px 0 -10px;
-    padding: 10px 5px 10px .5em;
-    border-bottom: 4px solid #2c8470;
+    margin: 0;
+    padding: 18px 24px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    color: black;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: 2em;
+    gap: 12px;
+    background: var(--accent-soft);
+    color: var(--ink);
+    font-size: 24px;
+    font-weight: 900;
+
+    img {
+      width: 52px;
+      height: 52px;
+      margin: -8px 0;
+    }
   }
 
   div.notice-body {
-    padding: 0 .5em;
+    padding: 4px 24px 8px;
+    overflow: auto;
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink);
 
     h3 {
-      font-size: 1.5em;
-      margin: .83em 0;
+      font-size: 17px;
+      font-weight: 800;
+      margin: 18px 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      &::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+    }
+
+    p {
+      margin: 0;
+      color: var(--sub);
+    }
+
+    b {
+      color: var(--accent-text);
     }
   }
 
   div.notice-action {
     display: flex;
     justify-content: center;
+    padding: 16px 24px 22px;
 
     button {
-      color: #fefefe;
-      background: #222;
+      color: #ffffff;
+      background: var(--accent);
       border: none;
-      border-radius: 10px;
-      padding: 5px 10px;
-      position: relative;
-      overflow: hidden;
+      border-radius: 999px;
       width: 50%;
-      height: 50px;
-      font-size: 20px;
-
-      &:active:after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-      }
-    }
-  }
-}
-
-@media screen and (max-width: 750px) {
-  #settings {
-    bottom: 60px;
-    display: block;
-    min-width: 0;
-    max-width: 100%;
-    width: calc(100% - 2rem);
-    overflow: hidden;
-    opacity: 1;
-    visibility: visible;
-    transition: visibility 0s, opacity 1s linear;
-
-    &.hide {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    .btn-toggle-settings {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      width: 100%;
-      margin-bottom: 6px;
+      height: 48px;
+      font-size: 18px;
+      font-weight: 800;
       cursor: pointer;
-      font-size: 11pt;
 
-      .toggle-arrow {
-        font-style: normal;
-      }
-    }
-
-    .collapsible-rows.collapsed {
-      display: none;
-    }
-
-    textarea {
-      min-height: 2.5rem;
-      font-size: 11pt;
-    }
-
-    div.right div.row {
-      height: auto;
-      display: block;
-      border-bottom: 1px solid #555;
-      padding: .5rem 0;
-
-      label {
-        width: 100%;
-        margin-bottom: .5rem;
-        padding-left: 0;
-        display: block;
-      }
-
-      &.row-toggles {
-        display: flex;
-        flex-wrap: wrap;
-
-        .toggle-item {
-          width: 50%;
-          display: flex;
-          flex-direction: column;
-          align-items: start;
-        }
-
-        label {
-          order: 0;
-          margin-bottom: .3rem;
-        }
-
-        input[type=checkbox] {
-          order: 1;
-        }
-      }
-
-      &.row-range.active {
-        display: flex;
-        padding-left: 0;
-      }
-
-      .icon {
-        width: 15px;
-        height: 15px;
+      &:hover {
+        background: var(--accent-hover);
       }
     }
   }
-
-
-  #notice {
-    position: fixed;
-    box-sizing: border-box;
-    top: 0;
-    left: 0;
-    width: 100%;
-    max-width: 100%;
-    height: 100%;
-    transform: none;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 4px;
-    z-index: 1001;
-    padding: 5px 10px;
-    color: #333;
-    display: none;
-    flex-direction: column;
-
-    div.notice-body {
-      flex-grow: 1;
-    }
-
-  }
-
 }
 
 div.toast {
   position: fixed;
-  transform: translate(-50%, 0);
-  padding: 8px;
-  border-radius: 4px;
-  background: #ccc;
-  overflow: hidden;
-  bottom: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 700;
+  bottom: 16px;
   left: 50%;
   z-index: 1000;
-  animation: .2s linear fade-in, .2s linear 1s reverse fade-in;
+  animation: 0.2s linear fade-in, 0.2s linear 1s reverse fade-in;
 }
 
 @keyframes fade-in {
@@ -523,5 +664,109 @@ div.toast {
   100% {
     opacity: 1;
     transform: translate(-50%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peek {
+    animation: none;
+  }
+}
+
+@media screen and (max-width: 750px) {
+  .wordmark {
+    top: 8px;
+    font-size: 14px;
+    padding: 4px 12px 5px;
+  }
+
+  .peek {
+    display: none;
+  }
+
+  #settings {
+    bottom: 40px;
+    left: 12px;
+    display: block;
+    min-width: 0;
+    width: calc(100% - 24px);
+    padding: 12px;
+    border-radius: 20px;
+    overflow: hidden;
+
+    .btn-toggle-settings {
+      display: flex;
+      width: 100%;
+      margin-bottom: 8px;
+      border-radius: 12px;
+      font-size: 15px;
+
+      .toggle-arrow {
+        font-style: normal;
+      }
+    }
+
+    .collapsible-rows.collapsed {
+      display: none;
+    }
+
+    textarea {
+      // iOS 는 16px 보다 작은 입력칸을 누르면 화면을 확대한다
+      min-height: 3rem;
+      font-size: 16px;
+    }
+
+    button,
+    .btn {
+      height: 38px;
+      padding: 0 11px;
+      font-size: 14px;
+    }
+
+    #btnStart {
+      height: 40px;
+      padding: 0 14px;
+      font-size: 16px;
+    }
+
+    div.left .actions {
+      gap: 4px;
+    }
+
+    div.right div.row {
+      height: auto;
+      display: block;
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.6rem 0;
+
+      label {
+        width: 100%;
+        margin-bottom: 0.4rem;
+      }
+
+      &.row-toggles {
+        display: flex;
+        flex-wrap: wrap;
+
+        .toggle-item {
+          width: 50%;
+          justify-content: space-between;
+          padding-right: 12px;
+
+          label {
+            margin-bottom: 0;
+          }
+        }
+      }
+
+      &.row-range.active {
+        display: flex;
+        padding-left: 0;
+      }
+    }
+  }
+
+  #notice h2 {
+    font-size: 20px;
   }
 }

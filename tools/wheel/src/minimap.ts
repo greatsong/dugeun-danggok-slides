@@ -126,16 +126,20 @@ export class Minimap implements UIObject {
     ctx.translate(-this.range.minX, 0);
     ctx.fillRect(this.range.minX, 0, units, stage.goalY);
 
-    this.ctx.lineWidth = 3 / (params.camera.zoom + initialZoom);
+    // 미니맵 선은 선화처럼 가늘고 고르게
+    this.ctx.lineWidth = 1.4 / this.scale;
     this.drawEntities(params.entities, params.theme);
     this.drawMarbles(params);
     this.drawViewport(params);
 
     ctx.restore();
     ctx.save();
-    ctx.strokeStyle = 'green';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.w, this.boundingBox.h);
+    // 둥근 카드 테두리 (원작의 초록 테두리 대신)
+    ctx.strokeStyle = params.theme.cardBorder;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(this.boundingBox.x - 1, this.boundingBox.y - 1, this.boundingBox.w + 2, this.boundingBox.h + 2, 6);
+    ctx.stroke();
     ctx.restore();
   }
 

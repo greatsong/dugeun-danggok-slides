@@ -21,7 +21,8 @@ export function drawCloseCircle(
   cx: number,
   cy: number,
   size: number,
-  fill: string = 'rgba(0, 0, 0, 0.5)'
+  fill: string = 'rgba(0, 0, 0, 0.5)',
+  stroke: string = 'rgba(255, 255, 255, 0.8)'
 ): Rect {
   const arm = size * 0.22;
 
@@ -30,7 +31,7 @@ export function drawCloseCircle(
   ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
   ctx.fillStyle = fill;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.strokeStyle = stroke;
   ctx.lineWidth = Math.max(1.5, size * 0.07);
   ctx.stroke();
   ctx.beginPath();
