@@ -235,8 +235,10 @@
     themeButtons.forEach((btn) => btn.addEventListener('click', () => applyTheme(btn.dataset.themeValue)));
     applyTheme(window.roulette.getTheme());
 
-    // 소리: 처음엔 켬(작게), 한 번 끄면 기억해서 계속 끈다. 시작 버튼 옆, 경기 중 왼쪽 아래 버튼, M 키
+    // 소리: 끔 / 효과음만 / 음악까지(기본). 한 번 끄면 기억해서 계속 끈다.
+    // 설정의 '소리' 칸, 시작 버튼 옆 스피커, 경기 중 왼쪽 아래 스피커, M 키가 모두 같은 상태를 바꾼다
     const soundButtons = [document.querySelector('#btnSound'), document.querySelector('#btnSoundFloat')];
+    const soundModeButtons = document.querySelectorAll('.btn-sound-mode');
     const syncSound = () => {
       const on = window.sfx.enabled;
       soundButtons.forEach((btn) => {
@@ -245,10 +247,12 @@
         btn.setAttribute('aria-label', btn.title);
         btn.setAttribute('aria-pressed', String(on));
       });
+      soundModeButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.sound === window.sfx.mode));
     };
+    window.sfx.onChange = syncSound;
+    soundModeButtons.forEach((btn) => btn.addEventListener('click', () => window.sfx.setMode(btn.dataset.sound)));
     const toggleSound = () => {
       window.sfx.setEnabled(!window.sfx.enabled);
-      syncSound();
     };
     soundButtons.forEach((btn) => btn.addEventListener('click', toggleSound));
     document.addEventListener('keydown', (e) => {
@@ -372,6 +376,17 @@
         </div>
       </div>
       <div class="row">
+        <label title="효과음은 출발·결승 직전 심장 소리·당첨 팡파르, 음악은 경주 중 배경음악입니다">
+          <i class="icon sound"></i>
+          <span>소리</span>
+        </label>
+        <div class="btn-group sound-group">
+          <button class="btn-sound-mode" data-sound="off">끔</button>
+          <button class="btn-sound-mode" data-sound="sfx">효과음만</button>
+          <button class="btn-sound-mode" data-sound="all">음악까지</button>
+        </div>
+      </div>
+      <div class="row">
         <label>
           <i class="icon palette"></i>
           <span>바탕</span>
@@ -443,7 +458,9 @@
     </p>
     <h3>바탕과 소리</h3>
     <p>
-      설정의 <b>바탕</b>에서 밝게·어둡게를 고릅니다. 시작하면 작은 효과음이 나는데, 스피커 버튼이나 <b>M</b> 키로 끌 수 있고 끈 상태는 기억합니다.
+      설정의 <b>바탕</b>에서 밝게·어둡게를 고릅니다.
+      <b>소리</b>는 끔·효과음만·음악까지 중에서 고릅니다. 음악까지 고르면 경주 중에 배경음악이 나오고, 결승 직전에는 음악이 낮아지고 심장 소리가 커집니다.
+      스피커 버튼이나 <b>M</b> 키로 바로 끄고 켤 수 있고, 끈 상태는 기억합니다.
     </p>
     <h3>이름 미리 채우기</h3>
     <p>

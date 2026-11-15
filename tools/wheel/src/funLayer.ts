@@ -1,6 +1,7 @@
 // 재미 연출 레이어: 결승선, 골인 링, 두근 박동(결승 직전 슬로모션), 역전 알림, 출발 도장, 발표 뒤 막.
 // 게임 상태를 "읽기만" 하고 물리·순위·시간·판정에는 값을 쓰지 않는다. 그래서 추첨 결과에는 영향이 없다.
 // 렌더러가 매 프레임 update → renderWorld(카메라 좌표) → renderBackdrop(화면, UI 아래) → renderOverlay(화면, 맨 위) 순서로 부른다.
+import { bgm } from './bgm';
 import { readableHue } from './colors';
 import { FONT } from './data/constants';
 import type { Marble } from './marble';
@@ -68,7 +69,10 @@ export class FunLayer {
       this.prevWinners = p.winners.length;
       this.loudFor = 0;
       sfx.go();
+      bgm.start();
     }
+    // 결과가 나오거나 경주가 끝나면 배경음악은 잦아들고 팡파르만 남는다
+    if (!running && this.wasRunning) bgm.stop();
     this.wasRunning = running;
 
     // 골인 (구슬은 골인 뒤 500ms 동안 물리에 남아 있어 위치를 읽을 수 있다)
@@ -97,6 +101,7 @@ export class FunLayer {
     const raw = running ? clamp01((1 - p.timeScale) / 0.8) : 0;
     this.suspense += (raw - this.suspense) * (1 - Math.exp(-dt / 250));
     if (this.suspense < 0.01) this.suspense = 0;
+    bgm.setSuspense(this.suspense);
 
     // 심장 박동: 66 → 100 bpm. 화면 박동은 초당 2번 아래로 (광과민 안전)
     const period = 60000 / (66 + 34 * this.suspense);
