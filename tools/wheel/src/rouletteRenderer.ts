@@ -1,11 +1,12 @@
 import type { Camera } from './camera';
+import { characterUrls } from './characters';
 import { closeButtonSize, drawCloseCircle } from './closeButton';
 import { canvasHeight, canvasWidth, initialZoom, Themes, winnerAreaHeight } from './data/constants';
 import type { StageDef } from './data/maps';
 import type { GameObject } from './gameObject';
 import type { Marble } from './marble';
 import { MINIMAP_INSET, MINIMAP_WIDTH } from './minimap';
-import type { WinnerRange } from './options';
+import options, { type WinnerRange } from './options';
 import type { ParticleManager } from './particleManager';
 import type { ColorTheme } from './types/ColorTheme';
 import type { MapEntityState } from './types/MapEntity.type';
@@ -76,6 +77,8 @@ export class RouletteRenderer {
   protected _pixelScale = 1;
 
   protected _theme: ColorTheme = Themes.dark;
+  /** 두근두근 캐릭터 그림 (characters.ts 순서). 글자 버전에서는 비어 있다 */
+  private _characters: (HTMLImageElement | undefined)[] = [];
   private _resultCloseRect: Rect | null = null;
   private _resultPopupClosed = false;
   private _lastResult: Marble[] | null = null;
@@ -184,6 +187,11 @@ export class RouletteRenderer {
       img.addEventListener('load', () => {
         rs(img);
       });
+      // 그림 하나를 못 읽어도 추첨기는 떠야 한다. 그 구슬은 색 구슬로 그린다
+      img.addEventListener('error', () => {
+        console.error('그림을 읽지 못했습니다', url);
+        rs(img);
+      });
       img.src = url;
     });
   }
@@ -191,7 +199,20 @@ export class RouletteRenderer {
   private async _load(): Promise<void> {
     // 원본은 특정 이름(방송인 등)의 구슬에 얼굴 그림을 입혔고, 광고 서버에서 키워드 그림도 받아 왔다.
     // 이 판에는 남의 그림과 외부 서버 호출을 넣지 않으므로 빨리감기 아이콘만 미리 읽어 둔다
-    await this._loadImage(new URL('../assets/images/ff.svg', import.meta.url).toString());
+    const loads: Promise<unknown>[] = [this._loadImage(new URL('../assets/images/ff.svg', import.meta.url).toString())];
+    if (options.skin === 'mong') {
+      loads.push(
+        Promise.all(characterUrls.map((url) => this._loadImage(url))).then((images) => {
+          this._characters = images.map((img) => (img.naturalWidth > 0 ? img : undefined));
+        })
+      );
+    }
+    await Promise.all(loads);
+  }
+
+  /** 그 구슬에 입힐 캐릭터 그림. 글자 버전이거나 그림이 없으면 undefined (색 구슬) */
+  private getMarbleImage(marble: Marble): CanvasImageSource | undefined {
+    return marble.character >= 0 ? this._characters[marble.character] : undefined;
   }
 
   protected onBeforeEntities(): void {}
@@ -291,7 +312,7 @@ export class RouletteRenderer {
         camera.zoom * initialZoom,
         i >= firstIndex && i <= lastIndex,
         false,
-        undefined,
+        this.getMarbleImage(marble),
         viewPort,
         this._theme
       );
@@ -493,14 +514,27 @@ export class RouletteRenderer {
     this.ctx.fillStyle = theme.winnerBackground;
     this.ctx.fillRect(this.width / 2, this.height - winnerAreaHeight, this.width / 2, winnerAreaHeight);
 
-    // 당첨 구슬 색 동그라미
+    // 당첨 구슬: 캐릭터가 있으면 캐릭터, 없으면 색 동그라미
     const marbleSize = 100;
     const marbleCenterX = this.width - marbleSize / 2 - 20;
     const marbleCenterY = this.height - winnerAreaHeight / 2;
-    this.ctx.beginPath();
-    this.ctx.arc(marbleCenterX, marbleCenterY, marbleSize / 2, 0, Math.PI * 2);
-    this.ctx.fillStyle = `hsl(${winner.hue} 100% ${theme.marbleLightness})`;
-    this.ctx.fill();
+    const marbleImage = this.getMarbleImage(winner);
+    if (marbleImage) {
+      // 정사각형 그림 안에 여백이 있으므로 조금 크게 그린다
+      const imageSize = marbleSize * 1.3;
+      this.ctx.drawImage(
+        marbleImage,
+        marbleCenterX - imageSize / 2,
+        marbleCenterY - imageSize / 2,
+        imageSize,
+        imageSize
+      );
+    } else {
+      this.ctx.beginPath();
+      this.ctx.arc(marbleCenterX, marbleCenterY, marbleSize / 2, 0, Math.PI * 2);
+      this.ctx.fillStyle = `hsl(${winner.hue} 100% ${theme.marbleLightness})`;
+      this.ctx.fill();
+    }
 
     this.ctx.fillStyle = theme.winnerText;
     this.ctx.strokeStyle = theme.winnerOutline;

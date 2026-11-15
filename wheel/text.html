@@ -1,0 +1,116 @@
+<!DOCTYPE html><html lang=ko data-skin="text"><script type=importmap>{"imports":{"01lVS":"./arong.53f44c26.png","2L5z5":"./Box2D.b9b16b27.wasm","34bKJ":"./ttukttak.f5375967.png","6JU4x":"./mandu.7532af3a.png","700qd":"./doran.c8e28b81.png","94hdS":"./salang.c3c6027a.png","9SRFn":"./drum.f833af0a.png","b73Z0":"./ssiat.7559a696.png","d7JIj":"./chorong.8aaaffb9.png","dKcR3":"./dugeun.b64ff175.png","eGw38":"./Box2D.simd.c9b728d9.js","hzVMp":"./Box2D.6a6f16c9.js","j2FTK":"./Box2D.simd.dd31b167.wasm","l2VvF":"./gori.3bf524a5.png","lTdcv":"./mongsil.55a31c59.png","uF8bJ":"./ff.7fdc9e82.svg"}}</script><meta charset=UTF-8><meta http-equiv=X-UA-Compatible content="ie=edge"><title>운명의 수레바퀴 (글자)</title><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=description content="구슬을 굴려 당첨자를 뽑는 추첨기 (광고 없음)"><meta name=theme-color content=#222222><link rel=icon type=image/svg+xml href=favicon.48a43a00.svg><link rel=stylesheet href=wheel.ad53a093.css><body>
+<script type=module src=wheel.4d83df87.js></script>
+<script>const NAMES_KEY="wheel_names",MAX_RANGE=200;function expandRange(e){let t=/^(\d+)\s*~\s*(\d+)$/.exec(e);if(!t)return[e];let n=parseInt(t[1],10),r=parseInt(t[2],10);return(n>r&&([n,r]=[r,n]),r-n+1>200)?[e]:Array.from({length:r-n+1},(e,t)=>String(n+t))}function getNames(){return document.querySelector("#in_names").value.trim().split(/[,\r\n]/g).map(e=>e.trim()).filter(e=>!!e).flatMap(expandRange)}function parseName(e){let t=/(\/\d+)/,n=/(\*\d+)/,r=t.test(e),i=n.test(e),o=/^\s*([^\/*]+)?/.exec(e)[1];return{name:o,weight:r?parseInt(t.exec(e)[1].replace("/","")):1,count:i?parseInt(n.exec(e)[1].replace("*","")):1}}function saveNames(e){try{localStorage.setItem(NAMES_KEY,e.join(","))}catch(e){}}function loadNames(){try{return localStorage.getItem(NAMES_KEY)}catch(e){return null}}function getReady(){let e=getNames();window.roulette.setMarbles(e),ready=e.length>0,saveNames(e),applyWinnerSetting()}function applyWinnerSetting(e){let t,n,r=document.querySelector("#in_winningRank"),i=document.querySelector("#in_rangeStart"),o=document.querySelector("#in_rangeEnd");switch(winnerType){case"first":t=n=1;break;case"last":t=n=window.roulette.getCount();break;case"multi":t=parseInt(i.value,10)||1,(n=parseInt(o.value,10)||1)<t&&("end"===e?t=n:n=t);break;default:t=n=parseInt(r.value,10)||1}window.roulette.setWinnerRange(t-1,n-1);let l=window.roulette.getWinnerRange();"multi"===winnerType?(i.value=l.start+1,o.value=l.end+1):r.value=l.start+1,document.querySelector(".btn-first-winner").classList.toggle("active","first"===winnerType),document.querySelector(".btn-last-winner").classList.toggle("active","last"===winnerType),document.querySelector(".btn-multi-winner").classList.toggle("active","multi"===winnerType),r.classList.toggle("active","custom"===winnerType),document.querySelector(".row-range").classList.toggle("active","multi"===winnerType)}function selectWinnerType(e,t){winnerType=e,applyWinnerSetting(t)}let ready=!1,winnerType="first";function initialize(){if(!window.roulette||!window.roulette.isReady)return void setTimeout(initialize,100);let e=new URLSearchParams(window.location.search).get("names");if(e)document.querySelector("#in_names").value=e.replace(/,/g,"\n");else{let e=loadNames();e&&(document.querySelector("#in_names").value=e)}document.querySelector("#in_names").addEventListener("input",()=>{getReady()}),document.querySelector("#in_names").addEventListener("blur",()=>{let e=getNames(),t=new Set,n={};e.forEach(e=>{let r=parseName(e),i=r.weight>1?`${r.name}/${r.weight}`:r.name;t.has(i)||(t.add(i),n[i]=0),n[i]+=r.count});let r=[];Object.keys(n).forEach(e=>{n[e]>1?r.push(`${e}*${n[e]}`):r.push(e)});let i=document.querySelector("#in_names").value,o=r.join(",");i!==o&&(document.querySelector("#in_names").value=o,getReady())}),document.querySelector("#btnShuffle").addEventListener("click",()=>{getReady()}),document.querySelector("#btnStart").addEventListener("click",()=>{ready&&(document.querySelector("#settings").classList.add("hide"),window.roulette.start())}),document.querySelector("#chkAutoRecording").addEventListener("change",e=>{window.options.autoRecording=e.target.matches(":checked"),window.roulette.setAutoRecording(window.options.autoRecording)});let t=document.querySelectorAll(".btn-resolution"),n=()=>{let e=window.roulette.getResolution();t.forEach(t=>t.classList.toggle("active",t.dataset.resolution===e))};t.forEach(e=>{e.addEventListener("click",()=>{window.roulette.setResolution(e.dataset.resolution),n()})}),n(),document.querySelector("#chkSkill").addEventListener("change",e=>{window.options.useSkills=e.target.matches(":checked")}),document.querySelector("#in_winningRank").addEventListener("change",()=>selectWinnerType("custom")),document.querySelector(".btn-last-winner").addEventListener("click",()=>selectWinnerType("last")),document.querySelector(".btn-first-winner").addEventListener("click",()=>selectWinnerType("first")),document.querySelector(".btn-multi-winner").addEventListener("click",()=>selectWinnerType("multi")),document.querySelector("#in_rangeStart").addEventListener("change",()=>selectWinnerType("multi","start")),document.querySelector("#in_rangeEnd").addEventListener("change",()=>selectWinnerType("multi","end")),window.roulette.addEventListener("goal",()=>{ready=!1,setTimeout(()=>{document.querySelector("#settings").classList.remove("hide")},3e3)}),window.roulette.addEventListener("message",e=>{var t;let n;t=e.detail,(n=document.createElement("div")).classList.add("toast"),n.innerHTML=t,window.translateElement&&window.translateElement(n),document.body.appendChild(n),setTimeout(()=>{document.body.removeChild(n)},1200)});let r=document.querySelector("#btnToggleSettings"),i=document.querySelector(".collapsible-rows");r.addEventListener("click",()=>{i.classList.toggle("collapsed"),r.querySelector(".toggle-arrow").textContent=i.classList.contains("collapsed")?"▲":"▼"}),document.querySelector("#btnShuffle").click(),document.querySelector("#closeNotice").addEventListener("click",()=>{document.querySelector("#notice").style.display="none"}),document.querySelector("#btnNotice").addEventListener("click",()=>{document.querySelector("#notice").style.display="flex"});let o=document.querySelector("#lnkOtherSkin");"mong"===window.options.skin?(o.href="text.html",o.querySelector("span").textContent="글자 버전",o.title="캐릭터 없이 색 구슬과 글자만 나오는 버전으로 바꿉니다"):(o.href="./",o.querySelector("span").textContent="캐릭터 버전",o.title="두근두근 캐릭터가 나오는 버전으로 바꿉니다")}document.addEventListener("DOMContentLoaded",()=>{initialize()});</script>
+<h1 class=sr-only>운명의 수레바퀴 - 구슬 추첨기</h1>
+<div id=settings class=settings>
+  <div class=right>
+    <button id=btnToggleSettings class=btn-toggle-settings>
+      <span data-trans>Settings</span>
+      <i class=toggle-arrow>▲</i>
+    </button>
+    <div class="collapsed collapsible-rows">
+      <div class="row row-toggles">
+        <div class=toggle-item>
+          <label for=chkAutoRecording>
+            <i class="icon record"></i>
+            <span data-trans>Recording</span>
+          </label>
+          <input type=checkbox id=chkAutoRecording>
+        </div>
+        <div class=toggle-item>
+          <label for=chkSkill>
+            <i class="bomb icon"></i>
+            <span data-trans>Using skills</span>
+          </label>
+          <input type=checkbox id=chkSkill checked>
+        </div>
+      </div>
+      <div class=row>
+        <label>
+          <i class="icon trophy"></i>
+          <span data-trans>The winner is</span>
+        </label>
+        <div class=btn-group>
+          <button class="active btn-first-winner btn-winner" data-trans>First</button>
+          <button class="btn-last-winner btn-winner" data-trans>Last</button>
+          <input type=number id=in_winningRank value=1 min=1>
+          <button class="btn-multi-winner btn-winner" data-trans>Multiple</button>
+        </div>
+      </div>
+      <div class="row row-range">
+        <label></label>
+        <div class="btn-group range-group">
+          <input type=number id=in_rangeStart value=1 min=1>
+          <span class=range-sep>~</span>
+          <input type=number id=in_rangeEnd value=3 min=1>
+        </div>
+      </div>
+      <div class=row>
+        <label title="Sharper rendering. Ultra may be heavy on 4K screens, especially while recording." data-trans=title>
+          <i class="display icon"></i>
+          <span data-trans>Resolution</span>
+        </label>
+        <div class="btn-group resolution-group">
+          <button class=btn-resolution data-resolution=default data-trans>Default</button>
+          <button class=btn-resolution data-resolution=high>High</button>
+          <button class=btn-resolution data-resolution=ultra>Ultra</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class=left>
+    <h3 data-trans>Enter names below</h3>
+    <textarea id=in_names placeholder="Input names separated by commas or line feed here" data-trans=placeholder>수박*2,키위*2,귤*2</textarea>
+    <div class=actions>
+      <button id=btnNotice title=사용법>
+        <span>사용법</span>
+      </button>
+      <a id=lnkOtherSkin class=btn href=#>
+        <span>글자 버전</span>
+      </a>
+      <div class=sep></div>
+      <button id=btnShuffle>
+        <i class="icon shuffle"></i>
+        <span data-trans>Shuffle</span>
+      </button>
+      <button id=btnStart>
+        <i class="icon play"></i>
+        <span data-trans>Start</span>
+      </button>
+    </div>
+  </div>
+</div>
+<div id=notice>
+  <h2>사용법</h2>
+  <div class=notice-body>
+    <h3>이름 넣기</h3>
+    <p>
+      이름을 쉼표나 줄바꿈으로 구분해 넣습니다.<br>
+      <b>1~30</b>처럼 쓰면 1번부터 30번까지 번호 구슬이 들어갑니다.<br>
+      <b>이름*3</b>처럼 쓰면 같은 이름의 구슬이 3개 들어갑니다.<br>
+      <b>이름/2</b>처럼 쓰면 그 구슬이 더 무거워집니다.
+    </p>
+    <h3>두 가지 버전</h3>
+    <p>
+      <b>캐릭터 버전</b>은 구슬마다 두근두근 캐릭터가 하나씩 붙어 굴러가고, <b>글자 버전</b>은 색 구슬과 이름(번호)만 나옵니다.
+      아래쪽 버튼으로 바꿀 수 있고, 넣어 둔 이름은 그대로 이어집니다.
+    </p>
+    <h3>당첨 순위</h3>
+    <p>
+      설정에서 먼저 도착한 구슬(첫번째), 마지막 구슬, 원하는 순위, 여러 명(범위) 중에서 고릅니다.
+      경기 중에는 화면 가운데를 누르고 있으면 빨리 감기가 됩니다.
+    </p>
+    <h3>이름 미리 채우기</h3>
+    <p>
+      주소 끝에 <b>?names=가,나,다</b>를 붙이면 그 이름들로 시작합니다.
+    </p>
+  </div>
+  <div class=notice-action>
+    <button id=closeNotice data-trans>Close</button>
+  </div>
+</div>
+<div class=copyright>
+  광고 없는 운명의 수레바퀴 · 두근두근 당곡 · lazygyu의 <a href=https://github.com/lazygyu/roulette target=_blank rel=noopener>Marble Roulette 소스</a>(MIT)를 고쳐 만들었습니다 · <a href=LICENSE.txt target=_blank>라이선스</a>
+</div>
+
+

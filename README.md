@@ -8,8 +8,9 @@
 
 ## 운명의 수레바퀴 (광고 없는 구슬 추첨기)
 
-- 바로가기: https://greatsong.github.io/dugeun-danggok-slides/wheel/
-- 이름 미리 넣기: 주소 끝에 `?names=가,나,다`
+- 캐릭터 버전: https://greatsong.github.io/dugeun-danggok-slides/wheel/ (구슬마다 두근두근 캐릭터)
+- 글자 버전: https://greatsong.github.io/dugeun-danggok-slides/wheel/text.html (색 구슬과 이름·번호만)
+- 이름 미리 넣기: 주소 끝에 `?names=가,나,다`. 번호는 `1~30`처럼 범위로 넣을 수 있습니다.
 - lazygyu의 Marble Roulette 소스(MIT)에서 광고·통계·상점 연결을 빼고 '운명의 수레바퀴' 맵 하나만 남겼습니다. 상표인 "마블 룰렛" 이름은 쓰지 않습니다.
 - 소스와 빌드 방법: `tools/wheel/README.md`. `wheel/`은 빌드 결과입니다.
 
