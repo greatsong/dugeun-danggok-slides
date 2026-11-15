@@ -57,6 +57,11 @@ class Sfx {
   unlock() {
     if (!this.enabled) return;
     try {
+      // 닫힌 출력은 다시 만든다 (브라우저가 오디오를 정리한 경우)
+      if (this.ctx && this.ctx.state === 'closed') {
+        this.ctx = null;
+        this.master = null;
+      }
       if (!this.ctx) {
         this.ctx = new AudioContext();
         this.master = this.ctx.createGain();
@@ -67,10 +72,31 @@ class Sfx {
         const d = this.noise.getChannelData(0);
         for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
       }
-      if (this.ctx.state === 'suspended') this.ctx.resume();
+      this.wake();
     } catch {
       this.ctx = null;
     }
+  }
+
+  /**
+   * 멈춘 출력을 다시 깨운다. 아이패드·사파리는 화면이 잠기거나 다른 앱·탭이 소리를 쓰면 출력을
+   * 'interrupted'(또는 'suspended')로 멈추고, 사용자가 다시 누를 때 resume 해야 소리가 난다.
+   * 페이지를 누르거나 키를 칠 때, 탭이 다시 보일 때 부른다
+   */
+  wake() {
+    const ctx = this.ctx;
+    if (!this.enabled || !ctx) return;
+    if (ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume().catch(() => undefined);
+  }
+
+  /** 다른 탭(캐릭터·글자 버전)에서 소리 설정을 바꾸면 이 탭도 따라간다 */
+  syncFromStorage() {
+    const mode = loadMode();
+    if (mode === this.mode) return;
+    this.mode = mode;
+    this.lastOn = loadLast();
+    if (mode === 'off') this.ctx?.suspend();
+    this.onChange?.();
   }
 
   setMode(mode: SoundMode) {

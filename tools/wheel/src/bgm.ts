@@ -136,7 +136,11 @@ class Bgm {
 
   private tick() {
     const a = sfx.audio();
-    if (!a) return;
+    if (!a) {
+      // 경주 중인데 출력이 멈춰 있으면 깨워 본다 (크롬은 바로 되고, 사파리는 다음 터치 때 된다)
+      if (this.playing) sfx.wake();
+      return;
+    }
     const { ctx, master } = a;
     const g = this.ensureGraph(ctx, master);
     const now = ctx.currentTime;
