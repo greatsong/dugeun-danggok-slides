@@ -6,7 +6,7 @@
 - 원본 작업 폴더: danggok-program-v3/output/intro-5min-20261111
 - 화면 속 학생·교사·운영 수치는 모의 자료입니다.
 
-## 운명의 수레바퀴 (광고 없는 구슬 추첨기)
+## 두근두근 룰렛 (광고 없는 구슬 추첨기)
 
 - 캐릭터 버전: https://greatsong.github.io/dugeun-danggok-slides/wheel/ (구슬마다 두근두근 캐릭터)
 - 글자 버전: https://greatsong.github.io/dugeun-danggok-slides/wheel/text.html (색 구슬과 이름·번호만)

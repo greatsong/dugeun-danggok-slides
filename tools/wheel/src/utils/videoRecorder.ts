@@ -33,7 +33,7 @@ export class VideoRecorder {
         const d = new Date();
 
         downloadLink.href = videoUrl;
-        downloadLink.download = `wheel_of_fortune_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.mp4`;
+        downloadLink.download = `dugeun_roulette_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.mp4`;
         downloadLink.click();
         downloadLink.remove();
         URL.revokeObjectURL(videoUrl);
