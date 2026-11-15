@@ -28,14 +28,14 @@ if (!skinAttr.test(indexHtml) || !titleTag.test(indexHtml)) {
 }
 writeFileSync(
   path.join(out, 'text.html'),
-  indexHtml.replace(skinAttr, 'data-skin="text"').replace(titleTag, '<title>운명의 수레바퀴 (글자)</title>')
+  indexHtml.replace(skinAttr, 'data-skin="text"').replace(titleTag, '<title>두근두근 룰렛 (글자)</title>')
 );
 
 // 빌드 결과만 보는 사람을 위한 안내. 라이선스 원문(LICENSE.txt)은 Parcel 이 index.html 의 링크를 따라 함께 내놓는다
 writeFileSync(
   path.join(out, 'README.md'),
   [
-    '# 운명의 수레바퀴 (빌드 결과)',
+    '# 두근두근 룰렛 (빌드 결과)',
     '',
     '- `index.html`: 캐릭터 버전 (구슬마다 두근두근 캐릭터)',
     '- `text.html`: 글자 버전 (색 구슬과 이름·번호만)',

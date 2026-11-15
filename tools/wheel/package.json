@@ -1,5 +1,5 @@
 {
-  "name": "wheel-of-fortune",
+  "name": "dugeun-roulette",
   "version": "1.0.0",
   "license": "MIT",
   "devDependencies": {
@@ -20,5 +20,5 @@
     "box2d-wasm": "^7.0.0"
   },
   "private": true,
-  "description": "광고 없는 운명의 수레바퀴 추첨기 (lazygyu/roulette 기반, MIT)"
+  "description": "광고 없는 구슬 추첨기 두근두근 룰렛 (lazygyu/roulette 기반, MIT)"
 }
