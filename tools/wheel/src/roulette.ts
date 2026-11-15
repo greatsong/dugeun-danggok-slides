@@ -1,4 +1,5 @@
 import { Camera } from './camera';
+import { characterUrls } from './characters';
 import { canvasHeight, canvasWidth, initialZoom, Skills, Themes, zoomThreshold } from './data/constants';
 import { type StageDef, stages } from './data/maps';
 import { FastForwader } from './fastForwader';
@@ -568,11 +569,15 @@ export class Roulette extends EventTarget {
         .fill(0)
         .map((_, i) => i)
     );
-    members.forEach((member) => {
+    // 두근두근 캐릭터는 참가자(입력한 이름) 순서대로 돌려 가며 입힌다. 같은 이름*3 은 같은 캐릭터
+    const useCharacters = options.skin === 'mong';
+    members.forEach((member, memberIndex) => {
       if (member) {
         for (let j = 0; j < member.count; j++) {
           const order = orders.pop() || 0;
-          this._marbles.push(new Marble(this.physics, order, totalCount, member.name, member.weight));
+          const marble = new Marble(this.physics, order, totalCount, member.name, member.weight);
+          if (useCharacters) marble.character = memberIndex % characterUrls.length;
+          this._marbles.push(marble);
         }
       }
     });

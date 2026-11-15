@@ -7,6 +7,9 @@ import { transformGuard } from './utils/transformGuard';
 import { rad } from './utils/utils';
 import { Vector } from './utils/Vector';
 
+/** 캐릭터 그림을 물리 구슬(지름 size)보다 이만큼 크게 그린다. 그림 안에 여백이 있어서 몸통이 구슬과 비슷해진다 */
+const CHARACTER_SCALE = 1.4;
+
 export class Marble {
   type = 'marble' as const;
   name: string = '';
@@ -17,6 +20,8 @@ export class Marble {
   weight: number = 1;
   skill: Skills = Skills.None;
   isActive: boolean = false;
+  /** 입힐 두근두근 캐릭터 번호 (characters.ts). -1 이면 색 구슬 */
+  character: number = -1;
 
   private _skillRate = 0.0005;
   private _coolTime = 5000;
@@ -169,19 +174,19 @@ export class Marble {
 
     // ctx.shadowColor = this.color;
     // ctx.shadowBlur = zoom / 2;
+    let nameOffset = 0.25;
     if (skin) {
-      transformGuard(ctx, () => {
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.angle);
-        ctx.drawImage(skin, -hs, -hs, hs * 2, hs * 2);
-      });
+      // 캐릭터는 굴러도 얼굴이 보이도록 똑바로 세워 그린다. 순위표와 같은 색은 이름 글자가 맡는다
+      const cs = hs * CHARACTER_SCALE;
+      ctx.drawImage(skin, this.x - cs, this.y - cs, cs * 2, cs * 2);
+      nameOffset = cs;
     } else {
       this._drawMarbleBody(ctx, false);
     }
 
     ctx.shadowColor = '';
     ctx.shadowBlur = 0;
-    this._drawName(ctx, zoom);
+    this._drawName(ctx, zoom, nameOffset);
 
     if (outline) {
       this._drawOutline(ctx, 2 / zoom);
@@ -192,14 +197,14 @@ export class Marble {
     }
   }
 
-  private _drawName(ctx: CanvasRenderingContext2D, zoom: number) {
+  private _drawName(ctx: CanvasRenderingContext2D, zoom: number, offsetY: number) {
     transformGuard(ctx, () => {
       ctx.font = `12pt sans-serif`;
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 2;
       ctx.fillStyle = this.color;
       ctx.shadowBlur = 0;
-      ctx.translate(this.x, this.y + 0.25);
+      ctx.translate(this.x, this.y + offsetY);
       ctx.scale(1 / zoom, 1 / zoom);
       ctx.strokeText(this.name, 0, 0);
       ctx.fillText(this.name, 0, 0);
