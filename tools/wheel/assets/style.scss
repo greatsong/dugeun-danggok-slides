@@ -475,6 +475,16 @@ div.copyright {
       }
     }
 
+    // 소리 칸은 글자가 길어 체크 표시 없이 색으로만 고른 것을 보인다
+    &.sound-group > * {
+      flex: 1 1 auto;
+      padding: 0 4px;
+    }
+
+    &.sound-group > .active::before {
+      display: none;
+    }
+
     // 버튼처럼 생긴 그룹 안 버튼은 위의 둥근 알약 버튼 모양을 쓰지 않는다
     button {
       height: 30px;

@@ -1,25 +1,59 @@
-// 연출용 효과음 세 가지(출발·두근 박동·팡파르). 파일 없이 WebAudio 로 그 자리에서 만든다.
-// 추첨 결과와는 아무 관계가 없다. 기본은 켜짐 + 작은 소리이고, 한 번 끄면 localStorage 에 기억해 계속 끈다.
-// 페이지를 열기만 해서는 소리가 나지 않는다 (시작 버튼을 눌러야 AudioContext 를 만든다).
+// 연출용 소리. 파일 없이 WebAudio 로 그 자리에서 만든다. 추첨 결과와는 아무 관계가 없다.
+// - 효과음 세 가지(출발·두근 박동·팡파르)는 여기서, 배경음악은 bgm.ts 에서 같은 출력(master)으로 낸다
+// - 소리 모드: 끔(off) / 효과음만(sfx) / 음악까지(all, 기본). 한 번 끄면 localStorage 에 기억해 계속 끈다
+// - 페이지를 열기만 해서는 소리가 나지 않는다 (시작 버튼을 눌러야 AudioContext 를 만든다)
+
+export type SoundMode = 'off' | 'sfx' | 'all';
 
 const KEY = 'wheel_sound';
+/** 스피커 버튼으로 다시 켤 때 돌아갈 모드 */
+const LAST_KEY = 'wheel_sound_last';
 const MASTER = 0.3;
 
-function loadEnabled(): boolean {
+function read(key: string): string | null {
   try {
-    return localStorage.getItem(KEY) !== 'off';
+    return localStorage.getItem(key);
   } catch {
-    return true;
+    return null;
   }
+}
+
+function write(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // 저장에 실패하면 이번 방문에만 적용된다
+  }
+}
+
+function loadMode(): SoundMode {
+  const v = read(KEY);
+  if (v === 'off' || v === 'sfx' || v === 'all') return v;
+  return 'all'; // 처음 쓰는 컴퓨터, 또는 예전 값 'on'
+}
+
+function loadLast(): 'sfx' | 'all' {
+  return read(LAST_KEY) === 'sfx' ? 'sfx' : 'all';
 }
 
 class Sfx {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private noise: AudioBuffer | null = null;
-  enabled = loadEnabled();
+  mode: SoundMode = loadMode();
+  private lastOn: 'sfx' | 'all' = loadLast();
+  /** 모드가 바뀌면 부른다 (페이지의 버튼 표시를 맞추는 데 쓴다) */
+  onChange: (() => void) | null = null;
 
-  /** 사용자 동작(시작 버튼) 안에서 불러야 브라우저가 소리를 허락한다 */
+  get enabled() {
+    return this.mode !== 'off';
+  }
+
+  get musicOn() {
+    return this.mode === 'all';
+  }
+
+  /** 사용자 동작(시작 버튼, 소리 버튼) 안에서 불러야 브라우저가 소리를 허락한다 */
   unlock() {
     if (!this.enabled) return;
     try {
@@ -39,20 +73,32 @@ class Sfx {
     }
   }
 
-  setEnabled(on: boolean) {
-    this.enabled = on;
-    try {
-      localStorage.setItem(KEY, on ? 'on' : 'off');
-    } catch {
-      // 저장에 실패하면 이번 방문에만 적용된다
+  setMode(mode: SoundMode) {
+    this.mode = mode;
+    write(KEY, mode);
+    if (mode !== 'off') {
+      this.lastOn = mode;
+      write(LAST_KEY, mode);
+      this.unlock();
+    } else {
+      this.ctx?.suspend();
     }
-    if (on) this.unlock();
-    else this.ctx?.suspend();
+    this.onChange?.();
+  }
+
+  /** 스피커 버튼·M 키: 끄거나, 마지막으로 켜 두었던 모드로 다시 켠다 */
+  setEnabled(on: boolean) {
+    this.setMode(on ? this.lastOn : 'off');
+  }
+
+  /** 배경음악이 쓸 출력. 소리를 켤 수 없는 상태면 null */
+  audio(): { ctx: AudioContext; master: GainNode } | null {
+    if (!this.enabled || !this.ctx || !this.master || this.ctx.state !== 'running') return null;
+    return { ctx: this.ctx, master: this.master };
   }
 
   private ready(): AudioContext | null {
-    if (!this.enabled || !this.ctx || !this.master || this.ctx.state !== 'running') return null;
-    return this.ctx;
+    return this.audio()?.ctx ?? null;
   }
 
   private tone(type: OscillatorType, f0: number, f1: number, at: number, dur: number, peak: number) {
